@@ -5,7 +5,7 @@
 
 from datetime import datetime, date
 from dateutil.rrule import rrule, DAILY
-from enum import Enum
+import enum
 import json
 
 import requests
@@ -41,7 +41,7 @@ def plot(dataframe, instrumentId):
 
 class SHFE:
         
-    class Suffix(Enum):
+    class Suffix(enum.Enum):
         sfe_default = 'defaultTimePrice.dat'
         sfe_main    = 'mainTimePrice.dat'
         sfe_daily   = 'dailyTimePrice.dat'
@@ -64,9 +64,13 @@ class SHFE:
 
     def parseData(self, date, response):
         result = json.loads(response.text)
+        indexes = ('reportDate', 'instrumentId', 'refSettlementPrice', 'updown')
+
         with open(LOGGING_FILE, 'a') as log:
+            # 日期
             reportDate = date or pd.to_datetime(result['report_date'], format='%Y%m%d', errors='ignore')
-            table = []
+
+            table = pd.DataFrame(index=indexes)
             for chunk in result['o_currefprice']:
 
                 if chunk.get('TIME') == '9:00-15:00':
@@ -82,7 +86,8 @@ class SHFE:
                     updown = float(chunk['UPDOWN'])
 
                     #log.write('{}\t{}\t{}\t{}\n'.format(reportDate, instrumentId, refSettlementPrice, updown))
-                    row = [reportDate, instrumentId, refSettlementPrice, updown,]
+                    row = pd.Series([reportDate, instrumentId, refSettlementPrice, updown,], index=indexes)
+
                     table.append(row)
 
             #print(table)
@@ -104,6 +109,7 @@ class SHFE:
             return []
 
     def traverseDate(callback):
+        # 最早的记录，从2002年1月1日开始
         dsrc = date(2002, 1, 1)
         ddst = date.today()
         table = []
