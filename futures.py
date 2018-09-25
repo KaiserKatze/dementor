@@ -105,12 +105,20 @@ class SHFE:
                 columnNames = columnNameSeperator.join(columns)
                 tableName = SHFE.DEFAULT_SQL_TABLE_NAME
 
-                return pd.read_sql_query(\
+                df = pd.read_sql_query(\
                         f'''SELECT {columnNames}
                             FROM {tableName}''',
                         conn,
+                        index_col='index',
                     )
-            # TODO validate data integrity
+                # TODO validate data integrity
+
+                logger.info('Load table successfully!')
+                logger.info('------------------------------')
+                logger.info(df)
+                logger.info('------------------------------')
+
+                return df
 
         except Exception as e:
             logger.exception(e)
