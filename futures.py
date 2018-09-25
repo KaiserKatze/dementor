@@ -100,12 +100,16 @@ class SHFE:
     def loadTableFromSqlite(self):
         try:
             with sqlite3.connect(SHFE.DEFAULT_SQL_PATH) as conn:
+                columnNames = ', '.join(self.DEFAULT_INDEXES)
+                tableName = SHFE.DEFAULT_SQL_TABLE_NAME
+
                 return pd.read_sql_query(\
-                        f'''SELECT *
-                        FROM {SHFE.DEFAULT_SQL_TABLE_NAME}''',
+                        f'''SELECT {columnNames}
+                            FROM {tableName}''',
                         conn,
                     )
             # TODO validate data integrity
+
         except Exception as e:
             logger.exception(e)
             return None
