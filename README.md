@@ -1,5 +1,6 @@
 # shfe
-Shanghai Futures Exchange
+
+This ia a simple spider designed to crawl in [Shanghai Futures Exchange official website](http://www.shfe.com.cn/).
 
 # Install
 
