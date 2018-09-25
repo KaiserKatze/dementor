@@ -100,7 +100,9 @@ class SHFE:
     def loadTableFromSqlite(self):
         try:
             with sqlite3.connect(SHFE.DEFAULT_SQL_PATH) as conn:
-                columnNames = ', '.join(self.DEFAULT_INDEXES)
+                columnNameSeperator = ', '
+                columns = ['index', *self.DEFAULT_INDEXES]
+                columnNames = columnNameSeperator.join(columns)
                 tableName = SHFE.DEFAULT_SQL_TABLE_NAME
 
                 return pd.read_sql_query(\
