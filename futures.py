@@ -83,10 +83,12 @@ class SHFE:
             finally:
                 self.saveTable()
 
-    def loadTable(self):
+    def loadTable(self,
+                force_new=False,
+            ):
         self.table = None
 
-        if os.path.isfile(SHFE.DEFAULT_SQL_PATH):
+        if not force_new and os.path.isfile(SHFE.DEFAULT_SQL_PATH):
             self.table = self.loadTableFromSqlite()
 
         if self.table is None:
@@ -102,6 +104,8 @@ class SHFE:
             with sqlite3.connect(SHFE.DEFAULT_SQL_PATH) as conn:
                 columnNameSeperator = ', '
                 columns = ['index', *self.DEFAULT_INDEXES]
+                # wrap each column name with
+                columns = map(lambda column: ''.join(column.join(['`',] * 2)), columns)
                 columnNames = columnNameSeperator.join(columns)
                 tableName = SHFE.DEFAULT_SQL_TABLE_NAME
 
@@ -111,14 +115,16 @@ class SHFE:
                         conn,
                         index_col='index',
                     )
+                df.index = pd.to_datetime(df.index)
                 # TODO validate data integrity
 
-                logger.info('Load table successfully!')
-                logger.info('------------------------------')
-                logger.info(df)
-                logger.info('------------------------------')
+                logger.info(f'Load table successfully!\n------------------------------\nLoaded table:\n{df}\n------------------------------')
 
                 return df
+
+        except pd.io.sql.DatabaseError as e:
+            logger.exception(e)
+            raise
 
         except Exception as e:
             logger.exception(e)
@@ -201,9 +207,7 @@ class SHFE:
             self.parseText(reportDate, text)
 
         except SpiderException as e:
-            logger.info('------------------------------')
-            logger.info(text)
-            logger.info('------------------------------')
+            logger.info(f'\n------------------------------\nresponse.text =\n{text}\n------------------------------')
             logger.exception(e)
 
     def generateUrl(self, reportDate, suffix):
@@ -256,3 +260,5 @@ class SHFE:
 
         for reportDate in rrule.rrule(rrule.DAILY, dtstart=dsrc, until=ddst):
             callback(reportDate)
+
+        logger.info(f'Complete traversal successfully!\n------------------------------\nTable:\n{self.table}\n------------------------------')
