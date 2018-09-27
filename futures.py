@@ -66,9 +66,10 @@ class SHFE:
     PRODUCTIDS = ( 'CU', 'AL', 'ZN', 'PB', 'NI', 'SN', 'AU', 'AG', 'RB', 'WR', 'HC', 'FU', 'BU', 'RU', )
     HOSTNAME = 'www.shfe.com.cn'
     URL_REFERER = 'http://www.shfe.com.cn/statements/dataview.html?paramid=delaymarket_cu'
-    DEFAULT_INDEXES = ( 'instrumentId', 'refSettlementPrice', 'updown', )
+    DEFAULT_COLUMNS = ( 'instrumentId', 'refSettlementPrice', 'updown', )
     DEFAULT_SQL_PATH = 'shfe.sqlite3'
     DEFAULT_SQL_TABLE_NAME = 'shfe'
+    DEFAULT_INDEX_NAME = 'index'
 
     def __init__(self):
         pass
@@ -96,14 +97,18 @@ class SHFE:
 
         assert self.table is not None, 'Fail to load table!'
 
+        # Post-loading processing
+        
+
     def createNewTable(self):
-        return pd.DataFrame(columns=self.DEFAULT_INDEXES)
+        return pd.DataFrame(columns=self.DEFAULT_COLUMNS)
 
     def loadTableFromSqlite(self):
         try:
             with sqlite3.connect(SHFE.DEFAULT_SQL_PATH) as conn:
                 columnNameSeperator = ', '
-                columns = ['index', *self.DEFAULT_INDEXES]
+                sIndexColumnName = SHFE.DEFAULT_INDEX_NAME
+                columns = [sIndexColumnName, *self.DEFAULT_COLUMNS]
                 # wrap each column name with
                 columns = map(lambda column: ''.join(column.join(['`',] * 2)), columns)
                 columnNames = columnNameSeperator.join(columns)
@@ -113,9 +118,11 @@ class SHFE:
                         f'''SELECT {columnNames}
                             FROM {tableName}''',
                         conn,
-                        index_col='index',
+                        index_col=sIndexColumnName,
+                        parse_dates=[
+                            sIndexColumnName,
+                        ],
                     )
-                df.index = pd.to_datetime(df.index)
                 # TODO validate data integrity
 
                 logger.info(f'Load table successfully!\n------------------------------\nLoaded table:\n{df}\n------------------------------')
@@ -138,7 +145,16 @@ class SHFE:
             self.table.to_sql(\
                     SHFE.DEFAULT_SQL_TABLE_NAME,
                     conn,
+                    schema=None,
                     if_exists='replace',
+                    index=True,
+                    index_label=SHFE.DEFAULT_INDEX_NAME,
+                    chunksize=None,
+                    dtype={
+                        'instrumentId': 'TEXT',
+                        'refSettlementPrice': 'INTEGER',
+                        'updown': 'INTEGER',
+                    },
                 )
 
     def parseChunk(self,
@@ -169,7 +185,7 @@ class SHFE:
                     refSettlementPrice,
                     updown,
                 ],
-                index=self.DEFAULT_INDEXES,
+                index=self.DEFAULT_COLUMNS,
                 name=pd.to_datetime(reportDate),
             )
 
