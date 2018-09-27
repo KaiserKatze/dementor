@@ -27,6 +27,7 @@ logging.basicConfig(\
         datefmt='%m/%d/%Y %I:%M:%S %p',
     )
 logger = logging.getLogger(__name__)
+DEFAULT_SEPERATOR = '------------------------------'
 
 def Session(host, referer):
     headers = {
@@ -131,7 +132,7 @@ class SHFE:
                     )
                 # TODO validate data integrity
 
-                logger.info(f'Load table successfully!\n------------------------------\nLoaded table:\n{df}\n------------------------------')
+                logger.info(f'Load table successfully!\n{DEFAULT_SEPERATOR}\nLoaded table:\n{df}\n{DEFAULT_SEPERATOR}')
 
                 return df
 
@@ -229,7 +230,8 @@ class SHFE:
             self.parseText(reportDate, text)
 
         except SpiderException as e:
-            logger.info(f'\n------------------------------\nresponse.text =\n{text}\n------------------------------')
+            sReportDate = reportDate.strftime('%Y-%m-%d')
+            logger.info(f'\n{DEFAULT_SEPERATOR}\nreportDate = {sReportDate}\nresponse.text =\n{text}\n{DEFAULT_SEPERATOR}')
             logger.exception(e)
 
     def generateUrl(self, reportDate, suffix):
@@ -291,4 +293,4 @@ class SHFE:
         for reportDate in rrule.rrule(rrule.DAILY, dtstart=dsrc, until=ddst):
             callback(reportDate)
 
-        logger.info(f'Complete traversal successfully!\n------------------------------\nTable:\n{self.table}\n------------------------------')
+        logger.info(f'Complete traversal successfully!\n{DEFAULT_SEPERATOR}\nTable:\n{self.table}\n{DEFAULT_SEPERATOR}')
