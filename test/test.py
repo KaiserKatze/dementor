@@ -30,6 +30,10 @@ class TestSHFE(unittest.TestCase):
         shfe = futures.SHFE()
         shfe.loadTable(force_new=True)
 
+        #############################################
+        # Check DataFrame Initialization
+        #############################################
+
         self.assertTrue(shfe.table is not None, 'DataFrame `shfe.table` is not properly initialized!')
         self.assertTrue(shfe.table.size == 0, 'DataFrame `shfe.table` should be EMPTY!')
 
@@ -37,12 +41,20 @@ class TestSHFE(unittest.TestCase):
             text = file.read()
             shfe.parseText(datetime.date(2018, 9, 20), text)
 
+        #############################################
+        # Check Data Interpretation
+        #############################################
+
         self.assertTrue(shfe.table.size > 0, 'DataFrame `shfe.table` should NOT be EMPTY!')
 
         logger.info(f'Complete parsing!\n------------------------------\nTable:\n{shfe.table}\n------------------------------')
 
         table = shfe.table.copy(deep=True)
         shfe.saveTable()
+
+        #############################################
+        # Check Load/Save Consistency
+        #############################################
 
         logger.info('Double-checking!')
 
