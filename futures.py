@@ -12,10 +12,11 @@ import logging
 import typing
 
 import requests
-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+
+import dtutil
 
 LOGGING_FILE = 'futures.log'
 logging.basicConfig(\
@@ -58,6 +59,7 @@ class SpiderException(Exception):
 
 class SHFE:
 
+    @enum.unique
     class Suffix(enum.Enum):
         default = 'defaultTimePrice.dat'
         main    = 'mainTimePrice.dat'
@@ -233,8 +235,13 @@ class SHFE:
     def generateUrl(self, reportDate, suffix):
         if not reportDate:
             raise TypeError('Argument `reportDate` is not specified!')
+        if not isinstance(reportDate, datetime.date):
+            raise TypeError(f'Argument `reportDate` has invalid type: `{type(reportDate)}`!')
         if not suffix:
             raise TypeError('Argument `suffix` is not specified!')
+
+        if dtutil.isWeekend(reportDate) or dtutil.isHoliday(reportDate):
+            return None
 
         #logger.info(f'Input parameters:\ndate={reportDate}\nsuffix={suffix.value}\n')
 
@@ -254,6 +261,9 @@ class SHFE:
 
     def fetchData(self, session, reportDate, suffix):
         url = self.generateUrl(reportDate, suffix)
+        if not url:
+            return
+
         response = session.get(url)
 
         logger.info(f'Fetching data for `url={url}` ...')
