@@ -81,6 +81,7 @@ class SHFE:
                 self.traverseDate(\
                         callback=lambda dt: self.fetchData(session, dt, SHFE.Suffix.daily),
                     )
+
             finally:
                 self.saveTable()
 
@@ -98,10 +99,13 @@ class SHFE:
         assert self.table is not None, 'Fail to load table!'
 
         # Post-loading processing
-        
+        self.table.index.name = SHFE.DEFAULT_INDEX_NAME
 
     def createNewTable(self):
-        return pd.DataFrame(columns=self.DEFAULT_COLUMNS)
+        return pd.DataFrame(\
+                columns=self.DEFAULT_COLUMNS,
+                dtype=np.int64,
+            )
 
     def loadTableFromSqlite(self):
         try:

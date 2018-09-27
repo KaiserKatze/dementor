@@ -49,7 +49,10 @@ class TestSHFE(unittest.TestCase):
         shfe.loadTable()
 
         self.assertTrue(shfe.table is not None, 'Fail to reload dataFrame `shfe.table`!')
-        pd.testing.assert_frame_equal(table, shfe.table, 'Fail to keep load/save consistency!')
+        pd.testing.assert_frame_equal(table,
+                shfe.table,
+                check_dtype=False,
+            ) # 'Fail to keep load/save consistency!'
 
 if __name__ == '__main__':
     unittest.main()
