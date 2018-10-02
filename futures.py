@@ -10,6 +10,7 @@ import sqlite3
 import collections
 import logging
 import typing
+import concurrent.futures
 
 import requests
 import pandas as pd
@@ -20,11 +21,11 @@ import dtutil
 
 LOGGING_FILE = 'futures.log'
 logging.basicConfig(\
-        filename=LOGGING_FILE,
-        filemode='w',
-        level=logging.INFO,
-        format='[%(asctime)s] %(levelname)s %(message)s',
-        datefmt='%m/%d/%Y %I:%M:%S %p',
+        filename = LOGGING_FILE,
+        filemode = 'w',
+        level = logging.INFO,
+        format = '[%(asctime)s] %(levelname)s %(message)s',
+        datefmt = '%m/%d/%Y %I:%M:%S %p',
     )
 logger = logging.getLogger(__name__)
 DEFAULT_SEPERATOR = '------------------------------'
@@ -46,12 +47,16 @@ def Session(host, referer):
 
     return session
 
+def ThreadPoolExecutor():
+    MAX_WORKERS = 4
+    return concurrent.futures.ThreadPoolExecutor(max_workers = MAX_WORKERS)
+
 def plot(dataframe, instrumentId):
     df[df['instrumentId'] == instrumentId].plot(\
-            x='reportDate',
-            y='refSettlementPrice',
-            kind='line',
-            title=instrumentId,
+            x = 'reportDate',
+            y = 'refSettlementPrice',
+            kind = 'line',
+            title = instrumentId,
         )
     plt.show()
 
@@ -78,11 +83,13 @@ class SHFE:
         pass
 
     def startSpider(self):
-        with Session(host=SHFE.HOSTNAME, referer=SHFE.URL_REFERER) as session:
+        with Session(host=SHFE.HOSTNAME, referer=SHFE.URL_REFERER) as session,\
+                ThreadPoolExecutor() as executor:
             try:
                 self.loadTable()
                 self.traverseDate(\
-                        callback=lambda dt: self.fetchData(session, dt, SHFE.Suffix.daily),
+                        executor = executor,
+                        callback = lambda dt: self.fetchData(session, dt, SHFE.Suffix.daily),
                     )
 
             finally:
@@ -125,8 +132,8 @@ class SHFE:
                         f'''SELECT {columnNames}
                             FROM {tableName}''',
                         conn,
-                        index_col=sIndexColumnName,
-                        parse_dates=[
+                        index_col = sIndexColumnName,
+                        parse_dates = [
                             sIndexColumnName,
                         ],
                     )
@@ -152,12 +159,12 @@ class SHFE:
             self.table.to_sql(\
                     SHFE.DEFAULT_SQL_TABLE_NAME,
                     conn,
-                    schema=None,
-                    if_exists='replace',
-                    index=True,
-                    index_label=SHFE.DEFAULT_INDEX_NAME,
-                    chunksize=None,
-                    dtype={
+                    schema = None,
+                    if_exists = 'replace',
+                    index = True,
+                    index_label = SHFE.DEFAULT_INDEX_NAME,
+                    chunksize = None,
+                    dtype = {
                         'instrumentId': 'TEXT',
                         'refSettlementPrice': 'INTEGER',
                         'updown': 'INTEGER',
@@ -192,8 +199,8 @@ class SHFE:
                     refSettlementPrice,
                     updown,
                 ],
-                index=self.DEFAULT_COLUMNS,
-                name=pd.to_datetime(reportDate),
+                index = self.DEFAULT_COLUMNS,
+                name = pd.to_datetime(reportDate),
             )
 
         #logger.info(row)
@@ -277,9 +284,10 @@ class SHFE:
             logger.error(f'Fail to retrieve request(url={url})!')
 
     def traverseDate(self,
+                executor,
                 callback,
-                dsrc: datetime.date = datetime.date(2002, 1, 1),
-                ddst: datetime.date = datetime.date.today(),
+                dsrc=datetime.date(2002, 1, 1),
+                ddst=datetime.date.today(),
             ):
         if not isinstance(dsrc, datetime.date):
             raise TypeError(f'Argument `dsrc` has invalid type: `{type(dsrc)}`!')
@@ -290,7 +298,38 @@ class SHFE:
         if not callback:
             raise TypeError('Argument `callback` is not specified!')
 
-        for reportDate in rrule.rrule(rrule.DAILY, dtstart=dsrc, until=ddst):
-            callback(reportDate)
+        def TraversalTask(cb, ttdsrc, ttddst):
+            for reportDate in rrule.rrule(rrule.DAILY, dtstart=ttdsrc, until=ttddst):
+                cb(reportDate)
 
-        logger.info(f'Complete traversal successfully!\n{DEFAULT_SEPERATOR}\nTable:\n{self.table}\n{DEFAULT_SEPERATOR}')
+            logger.info(f'Complete traversal successfully!\n{DEFAULT_SEPERATOR}\nTable:\n{self.table}\n{DEFAULT_SEPERATOR}')
+
+        tasks = []
+        for year in range(dsrc.year, ddst.year):
+            ndsrc = datetime.date(year, 1, 1)
+            nddst = datetime.date(year, 12, 31)
+            task = TraversalTask(callback, ndsrc, nddst)
+            tasks.append(task)
+        ndsrc = datetime.date(ddst.year, 1, 1)
+        nddst = ddst
+        task = TraversalTask(callback, ndsrc, nddst)
+        tasks.append(task)
+
+        executor.submit(task)
+
+if __name__ == '__main__':
+    shfe = SHFE()
+
+    import sys
+    import signal
+
+    def handler(signal, frame):
+        shfe.saveTable()
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, handler)
+
+    try:
+        shfe.startSpider()
+    finally:
+        shfe.saveTable()
