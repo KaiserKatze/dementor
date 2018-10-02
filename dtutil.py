@@ -57,7 +57,7 @@ def isWeekend(date):
     return weekday > 4
 
 def isHoliday(date):
-    for _, holiday in Holiday:
+    for holiday in Holiday.values():
         if holiday == date:
             return True
     return False
