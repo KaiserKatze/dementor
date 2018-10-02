@@ -82,7 +82,10 @@ class SHFE:
     def __init__(self):
         pass
 
-    def startSpider(self):
+    def startSpider(self,
+                dsrc=datetime.date(2002, 1, 1),
+                ddst=datetime.date.today(),
+            ):
         with Session(host=SHFE.HOSTNAME, referer=SHFE.URL_REFERER) as session,\
                 ThreadPoolExecutor() as executor:
             try:
@@ -90,6 +93,8 @@ class SHFE:
                 self.traverseDate(\
                         executor = executor,
                         callback = lambda dt: self.fetchData(session, dt, SHFE.Suffix.daily),
+                        dsrc = dsrc,
+                        ddst = ddst,
                     )
 
             finally:
@@ -212,7 +217,7 @@ class SHFE:
                 text: str,
             ):
         if not text:
-            raise TypeError('Argument `text` is not specified!')
+            raise SpiderException(TypeError('Argument `text` is not specified!'))
 
         result = json.loads(text)
         chunks = result.get('o_currefprice')
@@ -286,8 +291,8 @@ class SHFE:
     def traverseDate(self,
                 executor,
                 callback,
-                dsrc=datetime.date(2002, 1, 1),
-                ddst=datetime.date.today(),
+                dsrc,
+                ddst,
             ):
         if not isinstance(dsrc, datetime.date):
             raise TypeError(f'Argument `dsrc` has invalid type: `{type(dsrc)}`!')
@@ -330,6 +335,6 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, handler)
 
     try:
-        shfe.startSpider()
+        shfe.startSpider(dsrc = datetime.date(2018, 1, 1), ddst = datetime.date(2018, 1, 31))
     finally:
         shfe.saveTable()
