@@ -21,3 +21,8 @@ pip install -r requirements.txt
 ```
 $ ./start.sh
 ```
+
+# Test Suite
+
+You can test this project by either executing script `futures.py` directly,
+or, change directory into `/test/` and run script `test.py`.
