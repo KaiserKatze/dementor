@@ -86,6 +86,10 @@ class SHFE:
                 dsrc=datetime.date(2002, 1, 1),
                 ddst=datetime.date.today(),
             ):
+        sdsrc = dsrc.strftime('%Y-%m-%d')
+        sddst = ddst.strftime('%Y-%m-%d')
+        print(f'SHFE spider starts from `{sdsrc}` to `{sddst}` ...')
+
         with Session(host=SHFE.HOSTNAME, referer=SHFE.URL_REFERER) as session,\
                 ThreadPoolExecutor() as executor:
             try:
@@ -254,14 +258,29 @@ class SHFE:
         if not suffix:
             raise TypeError('Argument `suffix` is not specified!')
 
-        '''假期不开展业务'''
-        if dtutil.isWeekend(reportDate) or dtutil.isHoliday(reportDate):
-            return None
+        try:
+            '''假期不开展业务'''
+            if dtutil.isWeekend(reportDate) or dtutil.isHoliday(reportDate):
+                sReportDate = reportDate.strftime('%Y-%m-%d')
+                logger.info(f'Skip ({sReportDate}) due to weekend/holiday!')
+                return None
 
-        '''检查数据库中是否已经有本日记录'''
-        row = self.table.loc[pd.to_datetime(reportDate)]
-        if row:
-            return None
+            '''检查数据库中是否已经有本日记录'''
+            table = self.table
+            pdReportDate = pd.to_datetime(reportDate)
+            try:
+                row = table.loc[pdReportDate]
+
+            except KeyError:
+                pass
+
+            else:
+                sReportDate = reportDate.strftime('%Y-%m-%d')
+                logger.info(f'Skip ({sReportDate}) due to existing document!\n{row}')
+                return None
+
+        except:
+            pass
 
         #logger.info(f'Input parameters:\ndate={reportDate}\nsuffix={suffix.value}\n')
 
@@ -341,6 +360,6 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, handler)
 
     try:
-        shfe.startSpider(dsrc = datetime.date(2018, 1, 1), ddst = datetime.date(2018, 1, 31))
+        shfe.startSpider(dsrc = datetime.date(2018, 1, 1), ddst = datetime.date(2018, 1, 2))
     finally:
         shfe.saveTable()

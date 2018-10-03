@@ -21,16 +21,9 @@ def index():
 def ajax():
     shfe = SHFE()
 
-    def handler(signal, frame):
-        shfe.saveTable()
-        sys.exit(0)
-
-    signal.signal(signal.SIGINT, handler)
-
     try:
         shfe.startSpider()
     finally:
         shfe.saveTable()
 
     return 'hello'
-
