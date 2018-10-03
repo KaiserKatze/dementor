@@ -254,7 +254,13 @@ class SHFE:
         if not suffix:
             raise TypeError('Argument `suffix` is not specified!')
 
+        '''假期不开展业务'''
         if dtutil.isWeekend(reportDate) or dtutil.isHoliday(reportDate):
+            return None
+
+        '''检查数据库中是否已经有本日记录'''
+        row = self.table.loc[pd.to_datetime(reportDate)]
+        if row:
             return None
 
         #logger.info(f'Input parameters:\ndate={reportDate}\nsuffix={suffix.value}\n')
