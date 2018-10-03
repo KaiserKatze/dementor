@@ -1,0 +1,9 @@
+#
+# PIP Requirements
+# Dependencies for shfe
+#
+
+requests
+pandas
+matplotlib
+flask
