@@ -180,6 +180,29 @@ class SHFE:
                     },
                 )
 
+    def getData(self, **kwargs):
+        '''
+        获取完整数据，或筛选所需数据
+        '''
+        try:
+            table = self.table
+        except AttributeError as e:
+            raise RuntimeError('SHFE data is not loaded yet!') from e
+        else:
+            paramDate = kwargs.get('date')
+            if paramDate:
+                index = pd.to_datetime(paramDate)
+                result = table.loc[index,:]
+
+            else:
+                result = table
+
+            paramCopy = kwargs.get('copy')
+            if paramCopy:
+                return result.copy(deep = True)
+            else:
+                return result
+
     def parseChunk(self,
                 reportDate: datetime.date,
                 chunk,
@@ -211,8 +234,6 @@ class SHFE:
                 index = self.DEFAULT_COLUMNS,
                 name = pd.to_datetime(reportDate),
             )
-
-        #logger.info(row)
 
         return row
 
@@ -266,17 +287,15 @@ class SHFE:
                 return None
 
             '''检查数据库中是否已经有本日记录'''
-            table = self.table
-            pdReportDate = pd.to_datetime(reportDate)
             try:
-                row = table.loc[pdReportDate]
+                rows = self.getData(date = reportDate)
 
             except KeyError:
                 pass
 
             else:
                 sReportDate = reportDate.strftime('%Y-%m-%d')
-                logger.info(f'Skip ({sReportDate}) due to existing document!\n{row}')
+                logger.info(f'Skip ({sReportDate}) due to existing document!')
                 return None
 
         except:
@@ -332,7 +351,7 @@ class SHFE:
             for reportDate in rrule.rrule(rrule.DAILY, dtstart=ttdsrc, until=ttddst):
                 cb(reportDate)
 
-            logger.info(f'Complete traversal successfully!\n{DEFAULT_SEPERATOR}\nTable:\n{self.table}\n{DEFAULT_SEPERATOR}')
+            logger.info(f'Complete traversal successfully!')
 
         tasks = []
         for year in range(dsrc.year, ddst.year):
