@@ -29,6 +29,10 @@ if __name__ == '__main__':
 
     shfe.loadTable()
 
+    assert shfe.table.size > 0, 'DataFrame `shfe.table` should NOT be EMPTY!'
+
+    # Example:
+    # 'http://www.shfe.com.cn/data/dailydata/ck/20180102dailyTimePrice.dat'
     date = datetime.date(2018, 1, 2)
     rows = shfe.getData(date = date)
 
