@@ -32,7 +32,7 @@ class TimePriceParser(BaseParser):
         '''合约名称'''
         sInstrumentId = chunk['INSTRUMENTID']
         instrumentId = sInstrumentId.strip().upper()
-        if not instrumentId[:2] in SHFE.PRODUCTIDS:
+        if not instrumentId[:2] in futures.SHFE.PRODUCTIDS:
             raise SpiderException(f'Invalid `instrumentId`: {instrumentId}!')
 
         '''加权平均价'''
