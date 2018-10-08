@@ -1,19 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import datetime
 import json
 import logging
 
 import pandas as pd
 import numpy as np
 
+import handlers
 import futures
 
 ############################################################################
 logger = logging.getLogger(__name__)
 ############################################################################
 
-class BaseParser(futures.FutureHandler):
+class BaseParser(handlers.FutureHandler):
+    pass
+
+class SpiderException(Exception):
     pass
 
 class TimePriceParser(BaseParser):

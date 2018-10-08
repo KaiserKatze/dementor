@@ -12,6 +12,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+import spiders
+import parsers
+
 ############################################################################
 LOGGING_FILE = 'futures.log'
 logging.basicConfig(\
@@ -55,20 +58,6 @@ def plot(dataframe, instrumentId):
         )
     plt.show()
 
-class SpiderException(Exception):
-    pass
-
-class FutureHandler:
-
-    def __init__(self, parent):
-        self.parent = parent
-
-    def getTable(self):
-        return self.parent.table
-
-    def setTable(self, table):
-        self.parent.table = table
-
 class SHFE:
 
     PRODUCTIDS = ( 'CU', 'AL', 'ZN', 'PB', 'NI', 'SN', 'AU', 'AG', 'RB', 'WR', 'HC', 'FU', 'BU', 'RU', )
@@ -80,8 +69,20 @@ class SHFE:
     DEFAULT_INDEX_NAME = 'index'
 
     def __init__(self):
-        self.spider = Spiders.TimePriceSpider(self)
-        self.parser = Parsers.TimePriceParser(self)
+        super().__init__()
+
+        self.session = Session(host=SHFE.HOSTNAME, referer=SHFE.URL_REFERER)
+        self.executor = ThreadPoolExecutor()
+
+        self.spider = spiders.TimePriceSpider(self)
+        self.parser = parsers.TimePriceParser(self)
+
+    def __del__(self):
+        try:
+            self.session.close()
+
+        except:
+            pass
 
     def startSpider(self,
                 dsrc=datetime.date(2002, 1, 1),
@@ -91,18 +92,15 @@ class SHFE:
         sddst = ddst.strftime('%Y-%m-%d')
         print(f'SHFE spider starts from `{sdsrc}` to `{sddst}` ...')
 
-        with Session(host=SHFE.HOSTNAME, referer=SHFE.URL_REFERER) as session,\
-                ThreadPoolExecutor() as executor:
-            try:
-                self.loadTable()
-                self.parser.traverseDate(\
-                        executor = executor,
-                        dsrc = dsrc,
-                        ddst = ddst,
-                    )
+        try:
+            self.loadTable()
+            self.spider.traverseDate(\
+                    dsrc = dsrc,
+                    ddst = ddst,
+                )
 
-            finally:
-                self.saveTable()
+        finally:
+            self.saveTable()
 
     def loadTable(self,
                 force_new=False,
@@ -194,5 +192,9 @@ if __name__ == '__main__':
 
     try:
         shfe.startSpider(dsrc = datetime.date(2018, 1, 1), ddst = datetime.date(2018, 1, 2))
+
+        shfe.startSpider()
     finally:
         shfe.saveTable()
+
+    print('All tests passed.')

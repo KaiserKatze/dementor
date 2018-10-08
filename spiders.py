@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import datetime
 import dateutil.rrule as rrule
 import enum
 import logging
@@ -8,6 +9,7 @@ import logging
 import pandas as pd
 import numpy as np
 
+import handlers
 import futures
 import dtutil
 
@@ -15,7 +17,7 @@ import dtutil
 logger = logging.getLogger(__name__)
 ############################################################################
 
-class BaseSpider(futures.FutureHandler):
+class BaseSpider(handlers.FutureHandler):
     pass
 
 class TimePriceSpider(BaseSpider):
@@ -60,7 +62,7 @@ class TimePriceSpider(BaseSpider):
 
         #logger.info(f'Input parameters:\ndate={reportDate}\nsuffix={suffix.value}\n')
 
-        if isinstance(suffix, SHFE.Suffix):
+        if isinstance(suffix, TimePriceSpider.Suffix):
             suffix = suffix.value
 
         if isinstance(suffix, str):
@@ -91,13 +93,10 @@ class TimePriceSpider(BaseSpider):
 
     # public
     def traverseDate(self,
-                executor,
                 dsrc,
                 ddst,
                 callback=None,
             ):
-        if not isinstance(executor, concurrent.futures.ThreadPoolExecutor):
-            raise TypeError(f'Argument `executor` has invalid type: `{type(executor)}`!')
         if not isinstance(dsrc, datetime.date):
             raise TypeError(f'Argument `dsrc` has invalid type: `{type(dsrc)}`!')
         if not isinstance(ddst, datetime.date):
@@ -105,7 +104,9 @@ class TimePriceSpider(BaseSpider):
         if not dsrc < ddst:
             raise ValueError('Argument `dsrc` should be earlier than `ddst`!')
 
-        callback = callback or lambda dt: self.fetchData(session, dt, SHFE.Suffix.daily)
+        if callback is None:
+            session = self.getSession()
+            callback = lambda dt: self.fetchData(session, dt, TimePriceSpider.Suffix.daily)
 
         def TraversalTask(cb, ttdsrc, ttddst):
             for reportDate in rrule.rrule(rrule.DAILY, dtstart=ttdsrc, until=ttddst):
@@ -124,4 +125,5 @@ class TimePriceSpider(BaseSpider):
         task = TraversalTask(callback, ndsrc, nddst)
         tasks.append(task)
 
+        executor = self.getExecutor()
         executor.submit(task)
