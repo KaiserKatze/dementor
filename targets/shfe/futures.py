@@ -4,14 +4,13 @@
 import os.path
 import datetime
 import sqlite3
-import concurrent.futures
 import logging
 
-import requests
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+import target
 import spiders
 import parsers
 
@@ -28,27 +27,6 @@ logger = logging.getLogger(__name__)
 DEFAULT_SEPERATOR = '------------------------------'
 ############################################################################
 
-def Session(host, referer):
-    headers = {
-        'Accept': '*/*',
-        'Accept-Encoding': 'gzip, deflate',
-        'Accept-Language': 'zh-CN,zh;q=0.9',
-        'Cache-Control': 'max-age=0',
-        'Connection': 'keep-alive',
-        'Host': host,
-        'If-Modified-Since': '0',
-        'Referer': referer,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.62 Safari/537.36',
-    }
-    session = requests.Session()
-    session.headers.update(headers)
-
-    return session
-
-def ThreadPoolExecutor():
-    MAX_WORKERS = 4
-    return concurrent.futures.ThreadPoolExecutor(max_workers = MAX_WORKERS)
-
 def plot(dataframe, instrumentId):
     df[df['instrumentId'] == instrumentId].plot(\
             x = 'reportDate',
@@ -58,7 +36,7 @@ def plot(dataframe, instrumentId):
         )
     plt.show()
 
-class SHFE:
+class SHFE(Target):
 
     PRODUCTIDS = ( 'CU', 'AL', 'ZN', 'PB', 'NI', 'SN', 'AU', 'AG', 'RB', 'WR', 'HC', 'FU', 'BU', 'RU', )
     HOSTNAME = 'www.shfe.com.cn'
@@ -73,7 +51,6 @@ class SHFE:
 
         self.session = Session(host=SHFE.HOSTNAME, referer=SHFE.URL_REFERER)
         self.executor = ThreadPoolExecutor()
-
         self.spider = spiders.TimePriceSpider(self)
         self.parser = parsers.TimePriceParser(self)
 
