@@ -54,8 +54,10 @@ class Target:
     def table(self):
         return self._table
 
-    @property.setter
+    @table.setter
     def table(self, value):
         self._table = table
 
 if __name__ == '__main__':
+    config = getHttpRequestHeadersConfig()
+    print('HTTP request headers config:', config)
