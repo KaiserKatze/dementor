@@ -6,8 +6,11 @@ import concurrent.futures
 
 import requests
 
+from decorators import private
+
 DEFAULT_HTTP_REQUEST_HEADERS_CONFIG_PATH = 'http-request-headers.config.json'
 
+@private
 def getHttpRequestHeadersConfig():
     data = {}
     with open(DEFAULT_HTTP_REQUEST_HEADERS_CONFIG_PATH,
@@ -39,7 +42,7 @@ def ThreadPoolExecutor():
 class Target:
     def __init__(self):
         self._session = None
-        self._executor = None
+        self._executor = ThreadPoolExecutor()
         self._table = None
 
     @property

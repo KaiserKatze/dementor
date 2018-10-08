@@ -3,6 +3,8 @@
 
 import functools
 import inspect
+import os.path
+import sys
 
 def checktype(**kwargs):
     rules = kwargs
@@ -35,6 +37,34 @@ def checktype(**kwargs):
             return result
         return wrapper_checktype
     return decorator_checktype
+
+#####################################################################
+
+def private(func):
+    def get_current_path():
+        # TODO 找不到合适的函数，用以获得“声明路径”及“调用路径”
+        #return os.path.abspath(sys.argv[0])
+        #return os.path.abspath(__file__)
+        raise RuntimeError('Unsupported!')
+
+    declare_path = get_current_path()
+    print('Declare Path:', declare_path)
+
+    @functools.wraps(func)
+    def wrapper_private(*args, **kwargs):
+        invoker_path = get_current_path()
+        print('Invoker Path:', invoker_path)
+
+        if invoker_path == declare_path:
+            result = func(*args, **kwargs)
+            return result
+
+        else:
+            raise AssertionError(f'Private function {func.__name__!r} invoked outside its declaring context!')
+
+    return wrapper_private
+
+#####################################################################
 
 if __name__ == '__main__':
     msg = 'Decorator `checktype` fails to fullfilled runtime type checking.'
