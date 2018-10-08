@@ -83,7 +83,8 @@ class SHFE:
         pass
 
     def startSpider(self,
-                dsrc=datetime.date(2002, 1, 1),
+                # 根据测试 2013年12月1日 以前没有任何可用数据
+                dsrc=datetime.date(2013, 12, 1),
                 ddst=datetime.date.today(),
             ):
         sdsrc = dsrc.strftime('%Y-%m-%d')
@@ -307,11 +308,22 @@ class SHFE:
 
         logger.info(f'Fetching data for `url={url}` ...')
 
-        if response.status_code == 200:
+        status_code = response.status_code
+
+        if status_code == 200:
             self.parseData(reportDate, response)
 
         else:
-            logger.error(f'Fail to retrieve request(url={url})!')
+            logger.error(f'Fail to retrieve request(url={url!r})!')
+
+            reason = response.reason
+            headers = response.headers
+            logger.info(f'''
+                HTTP Request Failure
+                -------------------------------
+                Status: {status_code} {reason}
+                Response Headers: {headers}
+                ''')
 
     def traverseDate(self,
                 executor,
