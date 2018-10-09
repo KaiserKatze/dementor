@@ -61,7 +61,7 @@ class SHFE(target.Target):
             pass
 
     def startSpider(self,
-                dsrc=datetime.date(2002, 1, 1),
+                dsrc=datetime.date(2013, 12, 1),
                 ddst=datetime.date.today(),
             ):
         sdsrc = dsrc.strftime('%Y-%m-%d')
