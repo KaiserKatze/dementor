@@ -4,9 +4,12 @@
 import functools
 import inspect
 import os.path
-import sys
 
 def checktype(**kwargs):
+    '''
+    检查被调用函数的实参是否符合虚参的类型要求
+    '''
+
     rules = kwargs
     # Validate rule entries
     for paramType in rules.values():
@@ -40,29 +43,48 @@ def checktype(**kwargs):
 
 #####################################################################
 
-def private(func):
-    def get_current_path():
-        # TODO 找不到合适的函数，用以获得“声明路径”及“调用路径”
-        #return os.path.abspath(sys.argv[0])
-        #return os.path.abspath(__file__)
-        raise RuntimeError('Unsupported!')
+def checkcaller(caller: str = 'package'):
+    # 限制函数作用域
 
-    declare_path = get_current_path()
-    print('Declare Path:', declare_path)
+    def gcp_package():
+        currentFrame = inspect.currentframe()
+        outerFrames = inspect.getouterframes(currentFrame)
+        # `outerFrames[0]` 就是被调用函数，在被调用时，所在的帧 `currentFrame`
+        callerFrame = outerFrames[2]
+        file = callerFrame.filename
+        path = os.path.abspath(file)
+        return path
 
-    @functools.wraps(func)
-    def wrapper_private(*args, **kwargs):
-        invoker_path = get_current_path()
-        print('Invoker Path:', invoker_path)
+    get_current_path = {
+        'package': gcp_package,
+    }.get(caller)
 
-        if invoker_path == declare_path:
-            result = func(*args, **kwargs)
-            return result
+    if get_current_path is None:
+        raise RuntimeError(f'Invalid argument: `(caller={caller})` is unsupported!')
 
-        else:
-            raise AssertionError(f'Private function {func.__name__!r} invoked outside its declaring context!')
+    def decorator_checkcaller(func):
 
-    return wrapper_private
+        # 获取“声明路径”
+        declare_path = get_current_path()
+        print('Declare Path:', declare_path)
+
+        @functools.wraps(func)
+        def wrapper_checkcaller(*args, **kwargs):
+
+            # 获取“调用路径”
+            invoker_path = get_current_path()
+            print('Invoker Path:', invoker_path)
+
+            if invoker_path == declare_path:
+                result = func(*args, **kwargs)
+                return result
+            else:
+                raise AssertionError(f'Private function {func.__name__!r} invoked outside its declaring context!')
+        return wrapper_checkcaller
+    return decorator_checkcaller
+
+package = checkcaller('package')
+checkcaller = checktype(caller = str)(checkcaller)
 
 #####################################################################
 

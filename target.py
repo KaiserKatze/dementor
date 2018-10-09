@@ -6,11 +6,11 @@ import concurrent.futures
 
 import requests
 
-from decorators import private
+from decorators import package
 
 DEFAULT_HTTP_REQUEST_HEADERS_CONFIG_PATH = 'http-request-headers.config.json'
 
-@private
+@package
 def getHttpRequestHeadersConfig():
     data = {}
     with open(DEFAULT_HTTP_REQUEST_HEADERS_CONFIG_PATH,
