@@ -8,20 +8,15 @@ import logging
 import pandas as pd
 import numpy as np
 
-import handlers
-import futures
+from target import BaseParser, SpiderException
 
 ############################################################################
 logger = logging.getLogger(__name__)
 ############################################################################
 
-class BaseParser(handlers.FutureHandler):
-    pass
-
-class SpiderException(Exception):
-    pass
-
 class TimePriceParser(BaseParser):
+
+    PRODUCTIDS = ( 'CU', 'AL', 'ZN', 'PB', 'NI', 'SN', 'AU', 'AG', 'RB', 'WR', 'HC', 'FU', 'BU', 'RU', )
 
     def parseChunk(self,
                 reportDate: datetime.date,
@@ -37,7 +32,7 @@ class TimePriceParser(BaseParser):
         '''合约名称'''
         sInstrumentId = chunk['INSTRUMENTID']
         instrumentId = sInstrumentId.strip().upper()
-        if not instrumentId[:2] in futures.SHFE.PRODUCTIDS:
+        if not instrumentId[:2] in self.PRODUCTIDS:
             raise SpiderException(f'Invalid `instrumentId`: {instrumentId}!')
 
         '''加权平均价'''

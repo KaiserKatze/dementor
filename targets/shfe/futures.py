@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-import target
+from target import Target, Session
 import spiders
 import parsers
 
@@ -36,9 +36,8 @@ def plot(dataframe, instrumentId):
         )
     plt.show()
 
-class SHFE(target.Target):
+class SHFE(Target):
 
-    PRODUCTIDS = ( 'CU', 'AL', 'ZN', 'PB', 'NI', 'SN', 'AU', 'AG', 'RB', 'WR', 'HC', 'FU', 'BU', 'RU', )
     HOSTNAME = 'www.shfe.com.cn'
     URL_REFERER = 'http://www.shfe.com.cn/statements/dataview.html?paramid=delaymarket_cu'
     DEFAULT_COLUMNS = ( 'instrumentId', 'refSettlementPrice', 'updown', )
@@ -49,7 +48,7 @@ class SHFE(target.Target):
     def __init__(self):
         super().__init__()
 
-        self.session = target.Session(host=SHFE.HOSTNAME, referer=SHFE.URL_REFERER)
+        self.session = Session(host=SHFE.HOSTNAME, referer=SHFE.URL_REFERER)
         self.spider = spiders.TimePriceSpider(self)
         self.parser = parsers.TimePriceParser(self)
 

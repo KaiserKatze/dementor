@@ -62,6 +62,15 @@ class Target:
     def table(self, value):
         self._table = table
 
+class BaseParser:
+    pass
+
+class BaseSpider:
+    pass
+
+class SpiderException(Exception):
+    pass
+
 if __name__ == '__main__':
     config = getHttpRequestHeadersConfig()
     print('HTTP request headers config:', config)
