@@ -66,14 +66,14 @@ def checkcaller(caller: str = 'package'):
 
         # 获取“声明路径”
         declare_path = get_current_path()
-        print('Declare Path:', declare_path)
+        #print('Declare Path:', declare_path)
 
         @functools.wraps(func)
         def wrapper_checkcaller(*args, **kwargs):
 
             # 获取“调用路径”
             invoker_path = get_current_path()
-            print('Invoker Path:', invoker_path)
+            #print('Invoker Path:', invoker_path)
 
             if invoker_path == declare_path:
                 result = func(*args, **kwargs)
