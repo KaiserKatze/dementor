@@ -206,6 +206,7 @@ if __name__ == '__main__':
 
     import sys
     import signal
+    import datetime
 
     def handler(signal, frame):
         shfe.saveTable()
@@ -214,10 +215,15 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, handler)
 
     try:
-        shfe.startSpider(dsrc = datetime.date(2018, 1, 1), ddst = datetime.date(2018, 1, 2))
-
-        shfe.startSpider()
-    finally:
-        shfe.saveTable()
+        shfe.loadTable()
+    except:
+        raise
+    else:
+        try:
+            dsrc = datetime.date(2018, 1, 1)
+            ddst = datetime.date(2018, 1, 2)
+            shfe.startSpider(dsrc = dsrc, ddst = ddst)
+        finally:
+            shfe.saveTable()
 
     print('All tests passed.')
