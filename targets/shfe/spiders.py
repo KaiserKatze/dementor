@@ -40,7 +40,7 @@ class TimePriceSpider(BaseSpider):
                 return None
 
             '''检查数据库中是否已经有本日记录'''
-            table = self.getTable()
+            table = self.table
             pdReportDate = pd.to_datetime(reportDate)
             try:
                 row = table.loc[pdReportDate]

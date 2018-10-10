@@ -80,7 +80,7 @@ class TimePriceParser(BaseParser):
 
             if '9:00-15:00' in chunkTime:
                 row = self.parseChunk(reportDate, chunk)
-                table = self.getTable()
+                table = self.table
                 table = table.append(row)
                 self.setTable(table)
 
