@@ -145,7 +145,7 @@ class Target:
 
     @table.setter
     def table(self, value: pd.DataFrame):
-        self._table = table
+        self._table = value
 
     def loadTable(self,
                 columns: list,
