@@ -117,11 +117,11 @@ class Target:
 
     def __init__(self,
                 session = Session(),
-                tableName = self.GetDefaultTableName(),
+                tableName = None,
             ):
         self._session = session
         self._executor = ThreadPoolExecutor()
-        self._tableName = tableName
+        self._tableName = tableName or self.GetDefaultTableName()
         self._table = None
 
     def __del__(self):
@@ -199,3 +199,25 @@ class SpiderException(Exception):
 if __name__ == '__main__':
     config = getHttpRequestHeadersConfig()
     print('HTTP request headers config:', config)
+
+    from targets.shfe.futures import SHFE
+
+    shfe = SHFE()
+
+    import sys
+    import signal
+
+    def handler(signal, frame):
+        shfe.saveTable()
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, handler)
+
+    try:
+        shfe.startSpider(dsrc = datetime.date(2018, 1, 1), ddst = datetime.date(2018, 1, 2))
+
+        shfe.startSpider()
+    finally:
+        shfe.saveTable()
+
+    print('All tests passed.')
