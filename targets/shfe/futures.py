@@ -30,7 +30,7 @@ class SHFE(Target, TimePriceParser, TimePriceSpider):
     DEFAULT_COLUMNS = ( 'instrumentId', 'refSettlementPrice', 'updown', )
 
     def __init__(self):
-        super(Target, self).__init__(\
+        super().__init__(\
                 session = Session(\
                         host = self.HOSTNAME,
                         referer = self.URL_REFERER,
