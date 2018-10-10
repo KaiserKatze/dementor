@@ -121,5 +121,5 @@ class TimePriceSpider(BaseSpider):
         task = TraversalTask(callback, ndsrc, nddst)
         tasks.append(task)
 
-        executor = self.getExecutor()
+        executor = self.executor
         executor.submit(task)
