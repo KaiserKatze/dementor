@@ -26,7 +26,7 @@ def plot(dataframe, instrumentId):
 class SHFE(Target, TimePriceParser, TimePriceSpider):
 
     HOSTNAME = 'www.shfe.com.cn'
-    URL_REFERER = 'http://www.shfe.com.cn/statements/dataview.html?paramid=delaymarket_cu'
+    URL_REFERER = 'http://www.shfe.com.cn/statements/dataview.html?paramid=kx'
     DEFAULT_COLUMNS = ( 'instrumentId', 'refSettlementPrice', 'updown', )
 
     def __init__(self):
