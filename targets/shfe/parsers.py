@@ -4,6 +4,7 @@
 import datetime
 import json
 import logging
+import collections
 
 import pandas as pd
 import numpy as np
