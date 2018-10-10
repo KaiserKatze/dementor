@@ -9,16 +9,12 @@ import logging
 import pandas as pd
 import numpy as np
 
-import handlers
-import futures
+from target import BaseSpider
 import dtutil
 
 ############################################################################
 logger = logging.getLogger(__name__)
 ############################################################################
-
-class BaseSpider(handlers.FutureHandler):
-    pass
 
 class TimePriceSpider(BaseSpider):
 
