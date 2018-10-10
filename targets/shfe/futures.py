@@ -7,8 +7,8 @@ import logging
 import matplotlib.pyplot as plt
 
 from target import Target, Session
-from parsers import TimePriceParser
-from spiders import TimePriceSpider
+from .parsers import TimePriceParser
+from .spiders import TimePriceSpider
 
 ############################################################################
 logger = logging.getLogger(__name__)
