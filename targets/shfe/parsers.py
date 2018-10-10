@@ -82,7 +82,7 @@ class TimePriceParser(BaseParser):
                 row = self.parseChunk(reportDate, chunk)
                 table = self.table
                 table = table.append(row)
-                self.setTable(table)
+                self.table = table
 
     def parseData(self, reportDate, response):
         try:
