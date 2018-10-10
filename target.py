@@ -132,47 +132,54 @@ class Target:
             pass
 
     @property
-    def session(self):
+    def session(self) -> requests.Session:
         return self._session
 
     @property
-    def executor(self):
+    def executor(self) -> concurrent.futures.ThreadPoolExecutor:
         return self._executor
 
     @property
-    def table(self):
+    def table(self) -> pd.DataFrame:
         return self._table
 
     @table.setter
-    def table(self, value):
+    def table(self, value: pd.DataFrame):
         self._table = table
 
     def loadTable(self,
                 columns: list,
-                force_new = False,
-            ):
+                force_new: bool = False,
+            ) -> bool:
         if not columns:
             raise SpiderException(TypeError('Argument `columns` is not specified!'))
 
+        table = self.table
+
         if not force_new and os.path.isfile(self.DEFAULT_SQL_PATH):
             tableName = self._tableName
-            self._table = self.loadTableFromSqlite(tableName, columns)
+            table = self.loadTableFromSqlite(tableName, columns)
 
-        if self._table is None:
-            self._table = self.createNewTable(columns)
+        if table is None:
+            table = self.createNewTable(columns)
 
-        assert self._table is not None, 'Fail to load table!'
+        assert table is not None, 'Fail to load table!'
 
         # Post-loading processing
-        self._table.index.name = self.DEFAULT_INDEX_NAME
+        table.index.name = self.DEFAULT_INDEX_NAME
 
-    def saveTable(self):
-        if self._table is None:
+        self.table = table
+
+        return True
+
+    def saveTable(self) -> bool:
+        table = self.table
+        if table is None:
             raise TypeError('Field `table` is None!')
 
         with sqlite3.connect(self.DEFAULT_SQL_PATH) as conn:
             tableName = self._tableName
-            self._table.to_sql(\
+            table.to_sql(\
                     tableName,
                     conn,
                     schema = None,
@@ -186,6 +193,8 @@ class Target:
                         'updown': 'INTEGER',
                     },
                 )
+
+            return True
 
 class BaseParser:
     pass
