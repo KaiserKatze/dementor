@@ -101,7 +101,7 @@ class TimePriceSpider(BaseSpider):
             raise ValueError('Argument `dsrc` should be earlier than `ddst`!')
 
         if callback is None:
-            session = self.getSession()
+            session = self.session
             callback = lambda dt: self.fetchData(session, dt, TimePriceSpider.Suffix.daily)
 
         def TraversalTask(cb, ttdsrc, ttddst):
