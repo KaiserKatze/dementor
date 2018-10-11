@@ -75,7 +75,7 @@ class TestSHFE(unittest.TestCase):
 
         # 交易日期
         o_tradingday = data['o_tradingday']
-        o_tradingday = datetime.datetime.strptime('%Y%m%d')
+        o_tradingday = datetime.datetime.strptime(o_tradingday, '%Y%m%d')
         self.assertTrue(o_tradingday.year == 2018)
         self.assertTrue(o_tradingday.month == 10)
         self.assertTrue(o_tradingday.day == 9)
