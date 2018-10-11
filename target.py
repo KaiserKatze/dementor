@@ -33,7 +33,8 @@ DEFAULT_HTTP_REQUEST_HEADERS_CONFIG_PATH = 'http-request-headers.config.json'
 @package
 def getHttpRequestHeadersConfig():
     data = {}
-    with open(DEFAULT_HTTP_REQUEST_HEADERS_CONFIG_PATH,
+    path = os.path.join(GetRootPath(), DEFAULT_HTTP_REQUEST_HEADERS_CONFIG_PATH)
+    with open(path,
                 mode = 'r',
                 encoding = 'utf-8',
             ) as fd:

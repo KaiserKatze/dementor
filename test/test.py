@@ -10,7 +10,7 @@ import numpy as np
 
 sys.path.append('..')
 
-import futures
+from targets.shfe.futures import SHFE
 
 LOGGING_FILE = 'futures.log'
 logging.basicConfig(\
@@ -28,7 +28,7 @@ class TestSHFE(unittest.TestCase):
         #uri = './20180920dailyTimePrice.dat'
         uri = './20180920defaultTimePrice.dat'
 
-        shfe = futures.SHFE()
+        shfe = SHFE()
         shfe.loadTable(force_new=True)
 
         #############################################
