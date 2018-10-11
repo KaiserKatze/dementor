@@ -213,30 +213,34 @@ if __name__ == '__main__':
     config = getHttpRequestHeadersConfig()
     print('HTTP request headers config:', config)
 
-    from targets.shfe.futures import SHFE
+    pathRoot = Target.GetRootPath()
+    print(pathRoot)
 
-    shfe = SHFE()
+    def test_shfe():
+        from targets.shfe.futures import SHFE
 
-    import sys
-    import signal
-    import datetime
+        shfe = SHFE()
 
-    def handler(signal, frame):
-        shfe.saveTable()
-        sys.exit(0)
+        import sys
+        import signal
+        import datetime
 
-    signal.signal(signal.SIGINT, handler)
-
-    try:
-        shfe.loadTable()
-    except:
-        raise
-    else:
-        try:
-            dsrc = datetime.date(2018, 1, 1)
-            ddst = datetime.date(2018, 1, 2)
-            shfe.startSpider(dsrc = dsrc, ddst = ddst)
-        finally:
+        def handler(signal, frame):
             shfe.saveTable()
+            sys.exit(0)
+
+        signal.signal(signal.SIGINT, handler)
+
+        try:
+            shfe.loadTable()
+        except:
+            raise
+        else:
+            try:
+                dsrc = datetime.date(2018, 1, 1)
+                ddst = datetime.date(2018, 1, 2)
+                shfe.startSpider(dsrc = dsrc, ddst = ddst)
+            finally:
+                shfe.saveTable()
 
     print('All tests passed.')
