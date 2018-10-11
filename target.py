@@ -213,8 +213,8 @@ if __name__ == '__main__':
     config = getHttpRequestHeadersConfig()
     print('HTTP request headers config:', config)
 
-    pathRoot = Target.GetRootPath()
-    print(pathRoot)
+    pathRoot = GetRootPath()
+    print(f'pathRoot="{pathRoot}"')
 
     def test_shfe():
         from targets.shfe.futures import SHFE
