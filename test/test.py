@@ -4,6 +4,7 @@ import unittest
 import datetime
 import logging
 import json
+import re
 
 import pandas as pd
 import numpy as np
@@ -69,75 +70,113 @@ class TestSHFE(unittest.TestCase):
 
     def test_stock(self):
         path = '20181009dailystock.dat.txt'
-        file = open(path, mode = 'r', encoding = 'utf-8')
-        text = file.read()
-        data = json.loads(text)
+        with open(path, mode = 'r', encoding = 'utf-8') as file:
+            text = file.read()
+            data = json.loads(text)
 
-        # 交易日期
-        o_tradingday = data['o_tradingday']
-        o_tradingday = datetime.datetime.strptime(o_tradingday, '%Y%m%d')
-        self.assertTrue(o_tradingday.year == 2018)
-        self.assertTrue(o_tradingday.month == 10)
-        self.assertTrue(o_tradingday.day == 9)
-        # 年度期数 —— 2018年第185期(总第 2436 期)
-        # 返回 185
-        o_issueno = data['o_issueno']
-        o_issueno = int(o_issueno)
-        self.assertTrue(o_issueno == 185)
-        # 年度期数 —— 2018年第185期(总第 2436 期)
-        o_totalissueno = data['o_totalissueno']
-        o_totalissueno = int(o_totalissueno)
-        self.assertTrue(o_totalissueno == 2436)
-        # 数据
-        o_cursor = data['o_cursor']
+            # 交易日期
+            o_tradingday = data['o_tradingday']
+            o_tradingday = datetime.datetime.strptime(o_tradingday, '%Y%m%d')
+            self.assertTrue(o_tradingday.year == 2018)
+            self.assertTrue(o_tradingday.month == 10)
+            self.assertTrue(o_tradingday.day == 9)
+            # 年度期数 —— 2018年第185期(总第 2436 期)
+            # 返回 185
+            o_issueno = data['o_issueno']
+            o_issueno = int(o_issueno)
+            self.assertTrue(o_issueno == 185)
+            # 年度期数 —— 2018年第185期(总第 2436 期)
+            o_totalissueno = data['o_totalissueno']
+            o_totalissueno = int(o_totalissueno)
+            self.assertTrue(o_totalissueno == 2436)
+            # 数据
+            o_cursor = data['o_cursor']
+            self.assertTrue(o_cursor is not None)
+            self.assertTrue(isinstance(o_cursor, list))
+            self.assertTrue(len(o_cursor) > 0)
 
-        columns = [
-            '品种',
-            '地区',
-            '仓库',
-            '期货',
-            '增减',
-        ]
+            columns = [
+                '品种',
+                '地区',
+                '仓库',
+                '期货',
+                '增减',
+            ]
 
-        df = pd.DataFrame(\
-                columns = columns,
-                dtype = np.int64,
-            )
-        for entry in o_cursor:
-            # 品种
-            # 形如('铜$$COPPER')
-            e_varname = entry['VARNAME']
-            # 形如(0)
-            e_varsoft = entry['VARSOFT']
-            # 地区
-            # 形如('上海$$Shanghai')
-            e_regname = entry['REGNAME']
-            # 形如(0)
-            e_regsoft = entry['REGSOFT']
-            # 仓库
-            # 形如('期晟公司$$Qisheng')
-            e_whabbrname = entry['WHABBRNAME']
+            df = pd.DataFrame(\
+                    columns = columns,
+                    dtype = np.int64,
+                )
+            for entry in o_cursor:
+                try:
+                    # 品种
+                    # 形如('铜$$COPPER')
+                    e_varname = entry['VARNAME']
+                    #print(f'e_varname = {e_varname!r}')
+                    self.assertTrue(re.match(r'[^\x00-\x7F]+\$\$[A-Z]+', e_varname,) is not None)
+                    e_varname = e_varname[:e_varname.index('$$')]
 
-            if 'Total' in e_whabbrname or 'Subtotal' in e_whabbrname:
-                pass
+                    # 形如(0)
+                    e_varsort = entry['VARSORT']
 
-            # 形如(14)
-            e_whrows = entry['WHROWS']
-            # 形如('2')
-            e_wghtunit = entry['WGHTUNIT']
-            # 期货
-            # 形如(326)
-            e_wrtwghts = entry['WRTWGHTS']
-            # 增减
-            # 形如(0)
-            e_wrtchange = entry['WRTCHANGE']
-            # 形如(15)
-            e_roworder = entry['ROWORDER']
-            # 形如('0')
-            e_rowstatus = entry['ROWSTATUS']
+                    # 地区
+                    # 形如('上海$$Shanghai')
+                    e_regname = entry['REGNAME']
+                    #print(f'e_regname = {e_regname!r}')
+                    self.assertTrue(not e_regname or re.match(r'[^\x00-\x7F]+\$\$[a-zA-Z]+', e_regname,) is not None)
+                    try:
+                        e_regname = e_regname[:e_regname.index('$$')]
+                    except:
+                        continue
 
-            row = pd.Series([e_varname, e_regname, e_whabbrname, e_wrtwghts, e_wrtchange,], index = columns)
-            df = df.append(row, ignore_index = True)
+                    # 形如(0)
+                    e_regsort = entry['REGSORT']
+
+                    # 仓库
+                    # 形如('期晟公司$$Qisheng')
+                    e_whabbrname = entry['WHABBRNAME']
+                    #print(f'e_whabbrname = {e_whabbrname!r}')
+                    if 'Total' in e_whabbrname or 'Subtotal' in e_whabbrname:
+                        logger.info(f'Skip ({e_whabbrname!r}) ...')
+                        continue
+                    try:
+                        e_whabbrname = e_whabbrname[:e_whabbrname.index('$$')]
+                    except:
+                        continue
+
+                    # 形如(14)
+                    e_whrows = entry['WHROWS']
+
+                    # 形如('2')
+                    e_wghtunit = entry['WGHTUNIT']
+
+                    # 期货
+                    # 形如(326)
+                    e_wrtwghts = entry['WRTWGHTS']
+                    #print(f'e_wrtwghts = {e_wrtwghts!r}')
+                    self.assertTrue(isinstance(e_wrtwghts, int))
+
+                    # 增减
+                    # 形如(0)
+                    e_wrtchange = entry['WRTCHANGE']
+                    #print(f'e_wrtchange = {e_wrtchange!r}')
+                    self.assertTrue(isinstance(e_wrtchange, int))
+
+                    # 形如(15)
+                    e_roworder = entry['ROWORDER']
+
+                    # 形如('0')
+                    e_rowstatus = entry['ROWSTATUS']
+
+                    row = pd.Series([e_varname, e_regname, e_whabbrname, e_wrtwghts, e_wrtchange,], index = columns)
+                    #print('Row:')
+                    #print(row)
+                    df = df.append(row, ignore_index = True)
+                except KeyError as e:
+                    raise
+
+            print('Data:')
+            print(df)
 
 if __name__ == '__main__':
     unittest.main()
