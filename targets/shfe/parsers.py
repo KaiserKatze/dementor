@@ -91,5 +91,9 @@ class TimePriceParser(BaseParser):
 
         except SpiderException as e:
             sReportDate = reportDate.strftime('%Y-%m-%d')
-            logger.info(f'\n{DEFAULT_SEPERATOR}\nreportDate = {sReportDate}\nresponse.text =\n{text}\n{DEFAULT_SEPERATOR}')
+            logger.info(f'''
+                    reportDate = {sReportDate}
+                    response.text =
+                    {text}
+                    ''')
             logger.exception(e)
