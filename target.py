@@ -62,9 +62,13 @@ def ThreadPoolExecutor():
     MAX_WORKERS = 4
     return concurrent.futures.ThreadPoolExecutor(max_workers = MAX_WORKERS)
 
+@package
+def GetRootPath():
+    return os.path.dirname(os.path.abspath(__file__))
+
 class Target:
 
-    DEFAULT_SQL_PATH = 'db.sqlite3'
+    DEFAULT_SQL_PATH = os.path.join(GetRootPath(), 'db.sqlite3')
     DEFAULT_INDEX_NAME = 'index'
 
     @classmethod
