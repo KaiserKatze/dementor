@@ -159,7 +159,7 @@ class Target:
         if not columns:
             raise SpiderException(TypeError('Argument `columns` is not specified!'))
 
-        table = self.table
+        table = None
 
         if not force_new and os.path.isfile(self.DEFAULT_SQL_PATH):
             tableName = self._tableName
@@ -276,6 +276,7 @@ class BaseSpider:
             '''封装任务函数，开袋即食'''
             print(f'TraversalTask(ttdsrc={ttdsrc}, ttddst={ttddst})')
             def task():
+                logger.info(f'Running: TraversalTask(ttdsrc={ttdsrc}, ttddst={ttddst}) ...')
                 for reportDate in rrule.rrule(rrule.DAILY, dtstart=ttdsrc, until=ttddst):
                     callback(reportDate)
                 logger.info('Complete traversal successfully!')
