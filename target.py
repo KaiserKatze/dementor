@@ -15,7 +15,7 @@ from decorators import package
 import pandas as pd
 import numpy as np
 
-from decorators import package
+from decorators import package, dbgfunc
 
 ############################################################################
 LOGGING_FILE = 'futures.log'
@@ -206,6 +206,7 @@ class BaseParser:
 
 class BaseSpider:
 
+    @dbgfunc
     def generateUrl(self, reportDate):
         if not reportDate:
             raise TypeError('Argument `reportDate` is not specified!')
@@ -233,6 +234,7 @@ class BaseSpider:
         except:
             pass
 
+    @dbgfunc
     def fetchData(self, reportDate, **kwargs):
         url = self.generateUrl(reportDate, **kwargs)
         if not url:
@@ -249,6 +251,7 @@ class BaseSpider:
         else:
             logger.error(f'Fail to retrieve request(url={url})!')
 
+    @dbgfunc
     def traverseDate(self, dsrc, ddst, callback = None):
         if not isinstance(dsrc, datetime.date):
             raise TypeError(f'Argument `dsrc` has invalid type: `{type(dsrc)}`!')
