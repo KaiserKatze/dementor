@@ -205,7 +205,50 @@ class BaseParser:
     pass
 
 class BaseSpider:
-    pass
+
+    def fetchData(self, reportDate, **kwargs):
+        url = self.generateUrl(reportDate, **kwargs)
+        if not url:
+            return
+
+        session = self.session
+        response = session.get(url)
+
+        logger.info(f'Fetching data for `url={url}` ...')
+
+        if response.status_code == 200:
+            self.parseData(reportDate, response)
+
+        else:
+            logger.error(f'Fail to retrieve request(url={url})!')
+
+    def traverseDate(self, dsrc, ddst, callback=None):
+        if not isinstance(dsrc, datetime.date):
+            raise TypeError(f'Argument `dsrc` has invalid type: `{type(dsrc)}`!')
+        if not isinstance(ddst, datetime.date):
+            raise TypeError(f'Argument `ddst` has invalid type: `{type(ddst)}`!')
+        if not dsrc < ddst:
+            raise ValueError('Argument `dsrc` should be earlier than `ddst`!')
+
+        def TraversalTask(cb, ttdsrc, ttddst):
+            for reportDate in rrule.rrule(rrule.DAILY, dtstart=ttdsrc, until=ttddst):
+                cb(reportDate)
+
+            logger.info('Complete traversal successfully!')
+
+        tasks = []
+        for year in range(dsrc.year, ddst.year):
+            ndsrc = datetime.date(year, 1, 1)
+            nddst = datetime.date(year, 12, 31)
+            task = TraversalTask(callback, ndsrc, nddst)
+            tasks.append(task)
+        ndsrc = datetime.date(ddst.year, 1, 1)
+        nddst = ddst
+        task = TraversalTask(callback, ndsrc, nddst)
+        tasks.append(task)
+
+        executor = self.executor
+        executor.submit(task)
 
 class SpiderException(Exception):
     pass

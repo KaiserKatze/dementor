@@ -72,54 +72,38 @@ class TimePriceSpider(BaseSpider):
         else:
             raise TypeError(f'Argument `suffix={suffix}` is invalid!')
 
-    def fetchData(self, session, reportDate, suffix):
-        url = self.generateUrl(reportDate, suffix)
-        if not url:
-            return
+class StockSpider(BaseSpider):
 
-        response = session.get(url)
+    def generateUrl(self, reportDate):
+        if not reportDate:
+            raise TypeError('Argument `reportDate` is not specified!')
+        if not isinstance(reportDate, datetime.date):
+            raise TypeError(f'Argument `reportDate` has invalid type: `{type(reportDate)}`!')
 
-        logger.info(f'Fetching data for `url={url}` ...')
+        try:
+            '''假期不开展业务'''
+            if dtutil.isWeekend(reportDate) or dtutil.isHoliday(reportDate):
+                sReportDate = reportDate.strftime('%Y-%m-%d')
+                logger.info(f'Skip ({sReportDate}) due to weekend/holiday!')
+                return None
 
-        if response.status_code == 200:
-            self.parseData(reportDate, response)
+            '''检查数据库中是否已经有本日记录'''
+            table = self.table
+            pdReportDate = pd.to_datetime(reportDate)
+            try:
+                row = table.loc[pdReportDate]
+            except KeyError:
+                pass
+            else:
+                sReportDate = reportDate.strftime('%Y-%m-%d')
+                logger.info(f'Skip ({sReportDate}) due to existing document!\n{row}')
+                return None
+        except:
+            pass
 
-        else:
-            logger.error(f'Fail to retrieve request(url={url})!')
-
-    # public
-    def traverseDate(self,
-                dsrc,
-                ddst,
-                callback=None,
-            ):
-        if not isinstance(dsrc, datetime.date):
-            raise TypeError(f'Argument `dsrc` has invalid type: `{type(dsrc)}`!')
-        if not isinstance(ddst, datetime.date):
-            raise TypeError(f'Argument `ddst` has invalid type: `{type(ddst)}`!')
-        if not dsrc < ddst:
-            raise ValueError('Argument `dsrc` should be earlier than `ddst`!')
-
-        if callback is None:
-            session = self.session
-            callback = lambda dt: self.fetchData(session, dt, TimePriceSpider.Suffix.daily)
-
-        def TraversalTask(cb, ttdsrc, ttddst):
-            for reportDate in rrule.rrule(rrule.DAILY, dtstart=ttdsrc, until=ttddst):
-                cb(reportDate)
-
-            logger.info('Complete traversal successfully!')
-
-        tasks = []
-        for year in range(dsrc.year, ddst.year):
-            ndsrc = datetime.date(year, 1, 1)
-            nddst = datetime.date(year, 12, 31)
-            task = TraversalTask(callback, ndsrc, nddst)
-            tasks.append(task)
-        ndsrc = datetime.date(ddst.year, 1, 1)
-        nddst = ddst
-        task = TraversalTask(callback, ndsrc, nddst)
-        tasks.append(task)
-
-        executor = self.executor
-        executor.submit(task)
+        # Example:
+        # 'http://www.shfe.com.cn/data/dailydata/20181012dailystock.dat'
+        sReportDate = reportDate.strftime('%Y%m%d')
+        result = f'http://www.shfe.com.cn/data/dailydata/{sReportDate}dailystock.dat'
+        print('url=', result)
+        return result

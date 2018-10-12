@@ -52,10 +52,15 @@ class SHFE(Target, TimePriceParser, TimePriceSpider):
 
         try:
             self.loadTable()
+
+            session = self.session
+            callback = lambda dt: self.fetchData(session, dt, TimePriceSpider.Suffix.daily)
             self.traverseDate(\
                     dsrc = dsrc,
                     ddst = ddst,
+                    callback = callback,
                 )
+
         finally:
             self.saveTable()
 
