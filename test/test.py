@@ -74,13 +74,25 @@ class TestSHFE(unittest.TestCase):
 
         shfe.loadTable(force_new=True)
 
+        print(shfe.table)
+
         dsrc = datetime.date(2018, 1, 1)
         ddst = datetime.date(2018, 1, 2)
-        shfe.startSpider(dsrc = dsrc, ddst = ddst)
+
+        session = shfe.session
+        suffix = 'dailyTimePrice.dat'
+        callback = lambda dt: shfe.fetchData(session, dt, suffix)
+        shfe.traverseDate(\
+                dsrc = dsrc,
+                ddst = ddst,
+                callback = callback,
+            )
 
         print(shfe.table)
 
-    def test_stock(self):
+        self.assertTrue(shfe.table.size > 0, 'DataFrame `shfe.table` should NOT be EMPTY!')
+
+    def not_test_stock(self):
         path = '20181009dailystock.dat.txt'
         with open(path, mode = 'r', encoding = 'utf-8') as file:
             text = file.read()
