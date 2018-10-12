@@ -259,25 +259,29 @@ class BaseSpider:
         if not callable(callback):
             raise TypeError(f'Argument `callback` has invalid type: `{type(callback)}`!')
 
-        def TraversalTask(cb, ttdsrc, ttddst):
-            for reportDate in rrule.rrule(rrule.DAILY, dtstart=ttdsrc, until=ttddst):
-                cb(reportDate)
+        def years():
+            '''生成器：从起点日期到终点日期，按年份切分；有助于按年份调试解析异常'''
+            ndsrc = dsrc
+            while ndsrc < ddst:
+                year = ndsrc.year
+                nddst = datetime.date(year, 12, 31)
+                if nddst < ddst:
+                    yield ndsrc, nddst
+                    ndsrc = datetime.date(year + 1, 1, 1)
+                else:
+                    yield ndsrc, ddst
+                    break
 
-            logger.info('Complete traversal successfully!')
-
-        tasks = []
-        for year in range(dsrc.year, ddst.year):
-            ndsrc = datetime.date(year, 1, 1)
-            nddst = datetime.date(year, 12, 31)
-            task = TraversalTask(callback, ndsrc, nddst)
-            tasks.append(task)
-        ndsrc = datetime.date(ddst.year, 1, 1)
-        nddst = ddst
-        task = TraversalTask(callback, ndsrc, nddst)
-        tasks.append(task)
+        def TraversalTask(ttdsrc, ttddst):
+            '''封装任务函数，开袋即食'''
+            def task():
+                for reportDate in rrule.rrule(rrule.DAILY, dtstart=ttdsrc, until=ttddst):
+                    callback(reportDate)
+                logger.info('Complete traversal successfully!')
+            return task
 
         executor = self.executor
-        executor.submit(task)
+        executor.map(TraversalTask, years(),)
 
 class SpiderException(Exception):
     pass
