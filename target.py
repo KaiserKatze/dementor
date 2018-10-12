@@ -206,6 +206,33 @@ class BaseParser:
 
 class BaseSpider:
 
+    def generateUrl(self, reportDate):
+        if not reportDate:
+            raise TypeError('Argument `reportDate` is not specified!')
+        if not isinstance(reportDate, datetime.date):
+            raise TypeError(f'Argument `reportDate` has invalid type: `{type(reportDate)}`!')
+
+        try:
+            '''假期不开展业务'''
+            if dtutil.isWeekend(reportDate) or dtutil.isHoliday(reportDate):
+                sReportDate = reportDate.strftime('%Y-%m-%d')
+                logger.info(f'Skip ({sReportDate}) due to weekend/holiday!')
+                return None
+
+            '''检查数据库中是否已经有本日记录'''
+            table = self.table
+            pdReportDate = pd.to_datetime(reportDate)
+            try:
+                row = table.loc[pdReportDate]
+            except KeyError:
+                pass
+            else:
+                sReportDate = reportDate.strftime('%Y-%m-%d')
+                logger.info(f'Skip ({sReportDate}) due to existing document!\n{row}')
+                return None
+        except:
+            pass
+
     def fetchData(self, reportDate, **kwargs):
         url = self.generateUrl(reportDate, **kwargs)
         if not url:
@@ -216,19 +243,21 @@ class BaseSpider:
 
         logger.info(f'Fetching data for `url={url}` ...')
 
-        if response.status_code == 200:
+        status_code = response.status_code
+        if status_code == 200:
             self.parseData(reportDate, response)
-
         else:
             logger.error(f'Fail to retrieve request(url={url})!')
 
-    def traverseDate(self, dsrc, ddst, callback=None):
+    def traverseDate(self, dsrc, ddst, callback = None):
         if not isinstance(dsrc, datetime.date):
             raise TypeError(f'Argument `dsrc` has invalid type: `{type(dsrc)}`!')
         if not isinstance(ddst, datetime.date):
             raise TypeError(f'Argument `ddst` has invalid type: `{type(ddst)}`!')
         if not dsrc < ddst:
             raise ValueError('Argument `dsrc` should be earlier than `ddst`!')
+        if not callable(callback):
+            raise TypeError(f'Argument `callback` has invalid type: `{type(callback)}`!')
 
         def TraversalTask(cb, ttdsrc, ttddst):
             for reportDate in rrule.rrule(rrule.DAILY, dtstart=ttdsrc, until=ttddst):

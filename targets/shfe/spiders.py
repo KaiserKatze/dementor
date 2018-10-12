@@ -25,38 +25,10 @@ class TimePriceSpider(BaseSpider):
         daily   = 'dailyTimePrice.dat'
 
     def generateUrl(self, reportDate, suffix):
-        if not reportDate:
-            raise TypeError('Argument `reportDate` is not specified!')
-        if not isinstance(reportDate, datetime.date):
-            raise TypeError(f'Argument `reportDate` has invalid type: `{type(reportDate)}`!')
         if not suffix:
             raise TypeError('Argument `suffix` is not specified!')
 
-        try:
-            '''假期不开展业务'''
-            if dtutil.isWeekend(reportDate) or dtutil.isHoliday(reportDate):
-                sReportDate = reportDate.strftime('%Y-%m-%d')
-                logger.info(f'Skip ({sReportDate}) due to weekend/holiday!')
-                return None
-
-            '''检查数据库中是否已经有本日记录'''
-            table = self.table
-            pdReportDate = pd.to_datetime(reportDate)
-            try:
-                row = table.loc[pdReportDate]
-
-            except KeyError:
-                pass
-
-            else:
-                sReportDate = reportDate.strftime('%Y-%m-%d')
-                logger.info(f'Skip ({sReportDate}) due to existing document!\n{row}')
-                return None
-
-        except:
-            pass
-
-        #logger.info(f'Input parameters:\ndate={reportDate}\nsuffix={suffix.value}\n')
+        super().__init__(reportDate)
 
         if isinstance(suffix, TimePriceSpider.Suffix):
             suffix = suffix.value
@@ -75,31 +47,7 @@ class TimePriceSpider(BaseSpider):
 class StockSpider(BaseSpider):
 
     def generateUrl(self, reportDate):
-        if not reportDate:
-            raise TypeError('Argument `reportDate` is not specified!')
-        if not isinstance(reportDate, datetime.date):
-            raise TypeError(f'Argument `reportDate` has invalid type: `{type(reportDate)}`!')
-
-        try:
-            '''假期不开展业务'''
-            if dtutil.isWeekend(reportDate) or dtutil.isHoliday(reportDate):
-                sReportDate = reportDate.strftime('%Y-%m-%d')
-                logger.info(f'Skip ({sReportDate}) due to weekend/holiday!')
-                return None
-
-            '''检查数据库中是否已经有本日记录'''
-            table = self.table
-            pdReportDate = pd.to_datetime(reportDate)
-            try:
-                row = table.loc[pdReportDate]
-            except KeyError:
-                pass
-            else:
-                sReportDate = reportDate.strftime('%Y-%m-%d')
-                logger.info(f'Skip ({sReportDate}) due to existing document!\n{row}')
-                return None
-        except:
-            pass
+        super().__init__(reportDate)
 
         # Example:
         # 'http://www.shfe.com.cn/data/dailydata/20181012dailystock.dat'
