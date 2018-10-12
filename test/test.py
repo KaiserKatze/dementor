@@ -26,8 +26,8 @@ logger = logging.getLogger(__name__)
 class TestSHFE(unittest.TestCase):
 
     def test_timeprice(self):
-        #uri = './20180920dailyTimePrice.dat'
-        uri = './20180920defaultTimePrice.dat'
+        uri = './20180920dailyTimePrice.dat'
+        #uri = './20180920defaultTimePrice.dat'
 
         shfe = SHFE()
         shfe.loadTable(force_new=True)
@@ -49,7 +49,7 @@ class TestSHFE(unittest.TestCase):
 
         self.assertTrue(shfe.table.size > 0, 'DataFrame `shfe.table` should NOT be EMPTY!')
 
-        logger.info(f'Complete parsing!\n------------------------------\nTable:\n{shfe.table}\n------------------------------')
+        logger.info(f'Complete parsing!\nTable:\n{shfe.table}')
 
         table = shfe.table.copy(deep=True)
         shfe.saveTable()
@@ -67,6 +67,18 @@ class TestSHFE(unittest.TestCase):
                 shfe.table,
                 check_dtype=False,
             ) # 'Fail to keep load/save consistency!'
+
+        #############################################
+        # Check Spider
+        #############################################
+
+        shfe.loadTable(force_new=True)
+
+        dsrc = datetime.date(2018, 1, 1)
+        ddst = datetime.date(2018, 1, 2)
+        shfe.startSpider(dsrc = dsrc, ddst = ddst)
+
+        print(shfe.table)
 
     def test_stock(self):
         path = '20181009dailystock.dat.txt'

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import datetime
 import json
 import concurrent.futures
 import os.path
@@ -107,8 +108,7 @@ class Target:
                     )
                 # TODO validate data integrity
 
-                logger.info(f'''Load table successfully!
-                    Loaded table:\n{df}''')
+                logger.info(f'''Load table successfully!\n{df}''')
 
                 return df
 
@@ -274,6 +274,7 @@ class BaseSpider:
 
         def TraversalTask(ttdsrc, ttddst):
             '''封装任务函数，开袋即食'''
+            print(f'TraversalTask(ttdsrc={ttdsrc}, ttddst={ttddst})')
             def task():
                 for reportDate in rrule.rrule(rrule.DAILY, dtstart=ttdsrc, until=ttddst):
                     callback(reportDate)
@@ -281,7 +282,9 @@ class BaseSpider:
             return task
 
         executor = self.executor
-        executor.map(TraversalTask, years(),)
+        for ttdsrc, ttddst in years():
+            task = TraversalTask(ttdsrc, ttddst)
+            executor.submit(task)
 
 class SpiderException(Exception):
     pass
@@ -292,32 +295,5 @@ if __name__ == '__main__':
 
     pathRoot = GetRootPath()
     print(f'pathRoot="{pathRoot}"')
-
-    def test_shfe():
-        from targets.shfe.futures import SHFE
-
-        shfe = SHFE()
-
-        import sys
-        import signal
-        import datetime
-
-        def handler(signal, frame):
-            shfe.saveTable()
-            sys.exit(0)
-
-        signal.signal(signal.SIGINT, handler)
-
-        try:
-            shfe.loadTable()
-        except:
-            raise
-        else:
-            try:
-                dsrc = datetime.date(2018, 1, 1)
-                ddst = datetime.date(2018, 1, 2)
-                shfe.startSpider(dsrc = dsrc, ddst = ddst)
-            finally:
-                shfe.saveTable()
 
     print('All tests passed.')
