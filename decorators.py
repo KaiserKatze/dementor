@@ -5,6 +5,21 @@ import functools
 import inspect
 import os.path
 
+def dbgfunc(func):
+
+    @functools.wraps(func)
+    def wrapper_dbgfunc(*args, **kwargs):
+
+        print('-------------------------')
+        print('Function name:', func.__name__)
+        print('Positional arguments:', args)
+        print('Named arguments:', kwargs)
+        print('-------------------------')
+
+        result = func(*args, **kwargs)
+        return result
+    return wrapper_dbgfunc
+
 def checktype(**kwargs):
     '''
     检查被调用函数的实参是否符合虚参的类型要求
