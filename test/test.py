@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 class TestSHFE(unittest.TestCase):
 
-    def test_all(self):
+    def test_timeprice(self):
         #uri = './20180920dailyTimePrice.dat'
         uri = './20180920defaultTimePrice.dat'
 
