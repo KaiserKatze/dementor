@@ -55,7 +55,7 @@ class SHFE(Target, TimePriceParser, TimePriceSpider):
 
             session = self.session
             suffix = TimePriceSpider.Suffix.daily
-            callback = lambda dt: self.fetchData(session, dt, suffix)
+            callback = lambda dt: self.fetchData(dt, suffix = suffix)
             self.traverseDate(\
                     dsrc = dsrc,
                     ddst = ddst,

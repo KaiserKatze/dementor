@@ -81,7 +81,7 @@ class TestSHFE(unittest.TestCase):
 
         session = shfe.session
         suffix = 'dailyTimePrice.dat'
-        callback = lambda dt: shfe.fetchData(session, dt, suffix)
+        callback = lambda dt: shfe.fetchData(dt, suffix = suffix)
         shfe.traverseDate(\
                 dsrc = dsrc,
                 ddst = ddst,
