@@ -24,11 +24,13 @@ class TimePriceSpider(BaseSpider):
         main    = 'mainTimePrice.dat'
         daily   = 'dailyTimePrice.dat'
 
-    def generateUrl(self, reportDate, suffix):
+    def generateUrl(self, reportDate, suffix, **kwargs):
         if not suffix:
             raise TypeError('Argument `suffix` is not specified!')
 
-        super().__init__(reportDate)
+        skip, url = super().generateUrl(reportDate, **kwargs)
+        if skip:
+            return skip, url
 
         if isinstance(suffix, TimePriceSpider.Suffix):
             suffix = suffix.value
@@ -38,20 +40,20 @@ class TimePriceSpider(BaseSpider):
             # 'http://www.shfe.com.cn/data/dailydata/ck/20180920mainTimePrice.dat'
             sReportDate = reportDate.strftime('%Y%m%d')
             result = f'http://www.shfe.com.cn/data/dailydata/ck/{sReportDate}{suffix}'
-            print('url=', result)
-            return result
+            return False, result
 
         else:
             raise TypeError(f'Argument `suffix={suffix}` is invalid!')
 
 class StockSpider(BaseSpider):
 
-    def generateUrl(self, reportDate):
-        super().__init__(reportDate)
+    def generateUrl(self, reportDate, **kwargs):
+        skip, url = super().generateUrl(reportDate, **kwargs)
+        if skip:
+            return skip, url
 
         # Example:
         # 'http://www.shfe.com.cn/data/dailydata/20181012dailystock.dat'
         sReportDate = reportDate.strftime('%Y%m%d')
         result = f'http://www.shfe.com.cn/data/dailydata/{sReportDate}dailystock.dat'
-        print('url=', result)
-        return result
+        return False, result

@@ -7,6 +7,7 @@ import concurrent.futures
 import os.path
 import sqlite3
 import logging
+import dateutil.rrule as rrule
 
 import requests
 
@@ -15,7 +16,8 @@ from decorators import package
 import pandas as pd
 import numpy as np
 
-from decorators import package, dbgfunc
+from decorators import package, dbgfunc, malfunc
+import dtutil
 
 ############################################################################
 LOGGING_FILE = 'futures.log'
@@ -159,9 +161,10 @@ class Target:
         if not columns:
             raise SpiderException(TypeError('Argument `columns` is not specified!'))
 
-        table = None
+        if force_new:
+            table = None
 
-        if not force_new and os.path.isfile(self.DEFAULT_SQL_PATH):
+        elif os.path.isfile(self.DEFAULT_SQL_PATH):
             tableName = self._tableName
             table = self.loadTableFromSqlite(tableName, columns)
 
@@ -206,19 +209,25 @@ class BaseParser:
 
 class BaseSpider:
 
-    @dbgfunc
-    def generateUrl(self, reportDate):
+    def generateUrl(self, reportDate, **kwargs) -> tuple:
+        '''
+        @return <tuple>: the first entry 'skip' indicates `fetchData` should skip the given `reportDate`;
+                        the second entry 'url' defines the URL that `fetchData` needs
+        '''
         if not reportDate:
             raise TypeError('Argument `reportDate` is not specified!')
         if not isinstance(reportDate, datetime.date):
             raise TypeError(f'Argument `reportDate` has invalid type: `{type(reportDate)}`!')
 
+        sReportDate = reportDate.strftime('%Y-%m-%d')
+
+        logger.info(f'Try to generate URL for {sReportDate!r} ...')
+
         try:
             '''假期不开展业务'''
             if dtutil.isWeekend(reportDate) or dtutil.isHoliday(reportDate):
-                sReportDate = reportDate.strftime('%Y-%m-%d')
                 logger.info(f'Skip ({sReportDate}) due to weekend/holiday!')
-                return None
+                return True, None
 
             '''检查数据库中是否已经有本日记录'''
             table = self.table
@@ -228,16 +237,17 @@ class BaseSpider:
             except KeyError:
                 pass
             else:
-                sReportDate = reportDate.strftime('%Y-%m-%d')
                 logger.info(f'Skip ({sReportDate}) due to existing document!\n{row}')
-                return None
+                return True, None
         except:
-            pass
+            raise
 
-    @dbgfunc
+        return False, None
+
     def fetchData(self, reportDate, **kwargs):
-        url = self.generateUrl(reportDate, **kwargs)
-        if not url:
+        skip, url = self.generateUrl(reportDate, **kwargs)
+        logger.info(f'generateUrl() -> (skip={skip}, url={url!r},)')
+        if skip:
             return
 
         session = self.session
@@ -251,8 +261,7 @@ class BaseSpider:
         else:
             logger.error(f'Fail to retrieve request(url={url})!')
 
-    @dbgfunc
-    def traverseDate(self, dsrc, ddst, callback = None):
+    def traverseDate(self, dsrc, ddst, callback = None) -> [concurrent.futures.Future]:
         if not isinstance(dsrc, datetime.date):
             raise TypeError(f'Argument `dsrc` has invalid type: `{type(dsrc)}`!')
         if not isinstance(ddst, datetime.date):
@@ -286,9 +295,13 @@ class BaseSpider:
             return task
 
         executor = self.executor
+        futures = []
         for ttdsrc, ttddst in years():
             task = TraversalTask(ttdsrc, ttddst)
-            executor.submit(task)
+            future = executor.submit(task)
+            futures.append(future)
+
+        return futures
 
 class SpiderException(Exception):
     pass

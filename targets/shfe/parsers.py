@@ -4,7 +4,6 @@
 import datetime
 import json
 import logging
-import collections
 
 import pandas as pd
 import numpy as np
@@ -65,9 +64,13 @@ class TimePriceParser(BaseParser):
         if not text:
             raise SpiderException(TypeError('Argument `text` is not specified!'))
 
-        result = json.loads(text)
+        try:
+            result = json.loads(text)
+        except:
+            raise SpiderException('Invalid data structure: fail to parse response as json!')
+
         chunks = result.get('o_currefprice')
-        if not isinstance(chunks, collections.Iterable):
+        if not isinstance(chunks, list):
             raise SpiderException('Invalid data structure: invalid chunks found!')
 
         for chunk in chunks:
@@ -76,13 +79,21 @@ class TimePriceParser(BaseParser):
 
             chunkTime = chunk.get('TIME')
             if not isinstance(chunkTime, str):
-                raise SpiderException('Invalid data structure: invalid TIME found!')
+                raise SpiderException(f'Invalid data structure: invalid TIME={chunkTime!r} found!')
+
+            #print(f'ChunkTime={chunkTime!r}')
 
             if '9:00-15:00' in chunkTime:
                 row = self.parseChunk(reportDate, chunk)
                 table = self.table
                 table = table.append(row)
                 self.table = table
+
+            elif '9:00-10:15' in chunkTime:
+                continue
+
+            else:
+                raise SpiderException(f'Invalid data structure: invalid TIME={chunkTime!r} found!')
 
     def parseData(self, reportDate, response):
         try:

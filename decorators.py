@@ -6,6 +6,9 @@ import inspect
 import os.path
 
 def dbgfunc(func):
+    '''
+    在 stdout 输出函数参数信息
+    '''
 
     @functools.wraps(func)
     def wrapper_dbgfunc(*args, **kwargs):
@@ -19,6 +22,17 @@ def dbgfunc(func):
         result = func(*args, **kwargs)
         return result
     return wrapper_dbgfunc
+
+def malfunc(func):
+    '''
+    禁用函数，使之恒返回 None 值；
+    注意：必须满足以下条件，本装饰器是最靠近被修饰函数的
+    '''
+
+    @functools.wraps(func)
+    def wrapper_disable(*args, **kwargs):
+        return None
+    return wrapper_disable
 
 def checktype(**kwargs):
     '''
