@@ -70,14 +70,14 @@ class TestSHFE(unittest.TestCase):
         self.assertTrue(shfe.table is not None, 'Fail to reload dataFrame `shfe.table`!')
         pd.testing.assert_frame_equal(table,
                 shfe.table,
-                check_dtype = False,
+                check_dtype=False,
             ) # 'Fail to keep load/save consistency!'
 
         #############################################
         # Check Spider
         #############################################
 
-        shfe.loadTable(force_new = True)
+        shfe.loadTable(force_new=True)
 
         print(f'shfe.table={shfe.table}')
         self.assertTrue(isinstance(shfe.table, pd.DataFrame),)
@@ -106,15 +106,15 @@ class TestSHFE(unittest.TestCase):
             'session': session,
         }
         paramsFetchData = { k: v for k, v in paramsFetchData.items() if v is not None }
-        callback = lambda dt: shfe.fetchData(reportDate = dt, suffix = suffix, **paramsFetchData)
         paramsTraverseDate = {
+        callback = lambda dt: shfe.fetchData(reportDate=dt, suffix=suffix, **paramsFetchData)
             'executor': executor,
             'callback': callback,
         }
         paramsTraverseDate = { k: v for k, v in paramsTraverseDate.items() if v is not None }
-        futures = shfe.traverseDate(dsrc = dsrc, ddst = ddst, **paramsTraverseDate)
+        futures = shfe.traverseDate(dsrc=dsrc, ddst=ddst, **paramsTraverseDate)
 
-        concurrent.futures.wait(futures, timeout = None, return_when = concurrent.futures.ALL_COMPLETED)
+        concurrent.futures.wait(futures, timeout=None, return_when=concurrent.futures.ALL_COMPLETED)
 
         try:
             if session:
@@ -133,9 +133,9 @@ class TestSHFE(unittest.TestCase):
 
     def test_stock(self):
         path = '20181009dailystock.dat.txt'
-        with open(path, mode = 'r', encoding = 'utf-8') as file:
             text = file.read()
             data = json.loads(text)
+        with open(path, mode='r', encoding='utf-8') as file:
 
             # 交易日期
             o_tradingday = data['o_tradingday']
@@ -167,8 +167,8 @@ class TestSHFE(unittest.TestCase):
             ]
 
             df = pd.DataFrame(\
-                    columns = columns,
-                    dtype = np.int64,
+                    columns=columns,
+                    dtype=np.int64,
                 )
             for entry in o_cursor:
                 try:
@@ -231,10 +231,10 @@ class TestSHFE(unittest.TestCase):
                     # 形如('0')
                     e_rowstatus = entry['ROWSTATUS']
 
-                    row = pd.Series([e_varname, e_regname, e_whabbrname, e_wrtwghts, e_wrtchange,], index = columns)
+                    row = pd.Series([e_varname, e_regname, e_whabbrname, e_wrtwghts, e_wrtchange,], index=columns)
                     #print('Row:')
                     #print(row)
-                    df = df.append(row, ignore_index = True)
+                    df = df.append(row, ignore_index=True)
                 except KeyError as e:
                     raise
 

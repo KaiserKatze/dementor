@@ -12,11 +12,11 @@ from futures import SHFE
 
 LOGGING_FILE = 'dataviewer.log'
 logging.basicConfig(\
-        filename = LOGGING_FILE,
-        filemode = 'w',
-        level = logging.INFO,
-        format = '[%(asctime)s] %(levelname)s %(message)s',
-        datefmt = '%m/%d/%Y %I:%M:%S %p',
+        filename=LOGGING_FILE,
+        filemode='w',
+        level=logging.INFO,
+        format='[%(asctime)s] %(levelname)s %(message)s',
+        datefmt='%m/%d/%Y %I:%M:%S %p',
     )
 logger = logging.getLogger(__name__)
 DEFAULT_SEPERATOR = '------------------------------'
@@ -34,6 +34,6 @@ if __name__ == '__main__':
     # Example:
     # 'http://www.shfe.com.cn/data/dailydata/ck/20180102dailyTimePrice.dat'
     date = datetime.date(2018, 1, 2)
-    rows = shfe.getData(date = date)
+    rows = shfe.getData(date=date)
 
     print(rows)

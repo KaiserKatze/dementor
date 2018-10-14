@@ -45,11 +45,11 @@ class MonthDay:
 '''
 Holiday = dict(
     # 元旦节
-    NEW_YEAR = MonthDay(1, 1),
+    NEW_YEAR=MonthDay(1, 1),
     # 劳动节
-    LABORS_DAY = MonthDay(5, 1),
+    LABORS_DAY=MonthDay(5, 1),
     # 国庆节
-    NATION_DAY = MonthDay(10, 1, 3),
+    NATION_DAY=MonthDay(10, 1, 3),
 )
 
 def isWeekend(date):

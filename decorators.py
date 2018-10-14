@@ -72,7 +72,7 @@ def checktype(**kwargs):
 
 #####################################################################
 
-def checkcaller(caller: str = 'package'):
+def checkcaller(caller: str='package'):
     # 限制函数作用域
 
     def gcp_package():
@@ -113,7 +113,7 @@ def checkcaller(caller: str = 'package'):
     return decorator_checkcaller
 
 package = checkcaller('package')
-checkcaller = checktype(caller = str)(checkcaller)
+checkcaller = checktype(caller=str)(checkcaller)
 
 #####################################################################
 
@@ -121,16 +121,16 @@ if __name__ == '__main__':
     msg = 'Decorator `checktype` fails to fullfilled runtime type checking.'
 
     try:
-        assert checktype(param = int), msg  # 0
-        assert checktype(apple = str), msg  # 1
+        assert checktype(param=int), msg    # 0
+        assert checktype(apple=str), msg    # 1
 
-        @checktype(x = int, y = int)
+        @checktype(x=int, y=int)
         def add(x, y):
             return x + y
 
         assert add(1, 2) == 3, msg          # 2
 
-        @checktype(x = int, y = int)
+        @checktype(x=int, y=int)
         def mul(x, y):
             return x * y
 
@@ -146,7 +146,7 @@ if __name__ == '__main__':
     try:
         add('anything', None)
 
-        checktype(x = 'hello')
+        checktype(x='hello')
     except:
         result = True
     else:

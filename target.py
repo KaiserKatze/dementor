@@ -22,11 +22,11 @@ import dtutil
 ############################################################################
 LOGGING_FILE = 'futures.log'
 logging.basicConfig(\
-        filename = LOGGING_FILE,
-        filemode = 'w',
-        level = logging.INFO,
-        format = '[%(asctime)s] %(levelname)s %(message)s',
-        datefmt = '%m/%d/%Y %I:%M:%S %p',
+        filename=LOGGING_FILE,
+        filemode='w',
+        level=logging.INFO,
+        format='[%(asctime)s] %(levelname)s %(message)s',
+        datefmt='%m/%d/%Y %I:%M:%S %p',
     )
 logger = logging.getLogger(__name__)
 ############################################################################
@@ -38,16 +38,16 @@ def getHttpRequestHeadersConfig():
     data = {}
     path = os.path.join(GetRootPath(), DEFAULT_HTTP_REQUEST_HEADERS_CONFIG_PATH)
     with open(path,
-                mode = 'r',
-                encoding = 'utf-8',
+                mode='r',
+                encoding='utf-8',
             ) as fd:
         text = fd.read()
         data = json.loads(text)
 
     return data
 
-def Session(host: str = None,
-            referer: str = None,
+def Session(host: str=None,
+            referer: str=None,
         ):
     data = getHttpRequestHeadersConfig()
 
@@ -64,7 +64,7 @@ def Session(host: str = None,
 @package
 def ThreadPoolExecutor():
     MAX_WORKERS = 4
-    return concurrent.futures.ThreadPoolExecutor(max_workers = MAX_WORKERS)
+    return concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS)
 
 @package
 def GetRootPath():
@@ -82,8 +82,8 @@ class Target:
     @classmethod
     def createNewTable(cls, columns):
         return pd.DataFrame(\
-                columns = columns,
-                dtype = np.int64,
+                columns=columns,
+                dtype=np.int64,
             )
 
     @classmethod
@@ -103,8 +103,8 @@ class Target:
                         f'''SELECT {sColumnNames}
                             FROM {tableName}''',
                         conn,
-                        index_col = sIndexColumnName,
-                        parse_dates = [
+                        index_col=sIndexColumnName,
+                        parse_dates=[
                             sIndexColumnName,
                         ],
                     )
@@ -123,8 +123,8 @@ class Target:
             return None
 
     def __init__(self,
-                session = Session(),
-                tableName = None,
+                session=Session(),
+                tableName=None,
             ):
         self._session = session
         self._executor = ThreadPoolExecutor()
@@ -156,7 +156,7 @@ class Target:
 
     def loadTable(self,
                 columns: list,
-                force_new: bool = False,
+                force_new: bool=False,
             ) -> bool:
         if not columns:
             raise SpiderException(TypeError('Argument `columns` is not specified!'))
@@ -190,12 +190,12 @@ class Target:
             table.to_sql(\
                     tableName,
                     conn,
-                    schema = None,
-                    if_exists = 'replace',
-                    index = True,
-                    index_label = self.DEFAULT_INDEX_NAME,
-                    chunksize = None,
-                    dtype = {
+                    schema=None,
+                    if_exists='replace',
+                    index=True,
+                    index_label=self.DEFAULT_INDEX_NAME,
+                    chunksize=None,
+                    dtype={
                         'instrumentId': 'TEXT',
                         'refSettlementPrice': 'INTEGER',
                         'updown': 'INTEGER',
@@ -205,7 +205,37 @@ class Target:
             return True
 
 class BaseParser:
-    pass
+
+    def parseData(self, reportDate, response):
+        try:
+            text = response.text
+            self.parseText(reportDate, text)
+
+        except SpiderException as e:
+            sReportDate = reportDate.strftime('%Y-%m-%d')
+            logger.info(f'''
+                    reportDate = {sReportDate}
+                    response.text =
+                    {text}
+                    ''')
+            logger.exception(e)
+
+    def parseText(self,
+                reportDate: datetime.date,
+                text: str,
+            ):
+        if not text:
+            raise SpiderException(TypeError('Argument `text` is not specified!'))
+
+        try:
+            data = json.loads(text)
+        except:
+            raise SpiderException('Invalid data structure: fail to parse response as json!')
+
+        self.parseJson(reportDate, data)
+
+    def parseJson(self, reportDate: datetime.date, data: dict):
+        pass
 
 class BaseSpider:
 
@@ -261,7 +291,7 @@ class BaseSpider:
         else:
             logger.error(f'Fail to retrieve request(url={url})!')
 
-    def traverseDate(self, dsrc, ddst, callback = None) -> [concurrent.futures.Future]:
+    def traverseDate(self, dsrc, ddst, callback=None) -> [concurrent.futures.Future]:
         if not isinstance(dsrc, datetime.date):
             raise TypeError(f'Argument `dsrc` has invalid type: `{type(dsrc)}`!')
         if not isinstance(ddst, datetime.date):
