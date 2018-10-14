@@ -5,13 +5,18 @@ import datetime
 import logging
 import json
 import re
+import concurrent.futures
 
 import pandas as pd
 import numpy as np
 
 sys.path.append('..')
 
-from targets.shfe.futures import SHFE
+try:
+    from targets.shfe.futures import SHFE
+    from target import Session
+except ImportError as e1:
+    from futures import SHFE, Session, ThreadPoolExecutor
 
 LOGGING_FILE = 'futures.log'
 logging.basicConfig(\
@@ -65,34 +70,68 @@ class TestSHFE(unittest.TestCase):
         self.assertTrue(shfe.table is not None, 'Fail to reload dataFrame `shfe.table`!')
         pd.testing.assert_frame_equal(table,
                 shfe.table,
-                check_dtype=False,
+                check_dtype = False,
             ) # 'Fail to keep load/save consistency!'
 
         #############################################
         # Check Spider
         #############################################
 
-        shfe.loadTable(force_new=True)
+        shfe.loadTable(force_new = True)
 
-        print(shfe.table)
+        print(f'shfe.table={shfe.table}')
+        self.assertTrue(isinstance(shfe.table, pd.DataFrame),)
+        self.assertTrue(shfe.table.size == 0, 'New DataFrame `shfe.table` should be EMPTY!')
 
         dsrc = datetime.date(2018, 1, 1)
         ddst = datetime.date(2018, 1, 2)
 
-        session = shfe.session
+        session = None
+        executor = None
+
+        try:
+            HOSTNAME = 'www.shfe.com.cn'
+            URL_REFERER = 'http://www.shfe.com.cn/statements/dataview.html?paramid=delaymarket_cu'
+            session = Session(HOSTNAME, URL_REFERER)
+        except:
+            pass
+
+        try:
+            executor = ThreadPoolExecutor()
+        except:
+            pass
+
         suffix = 'dailyTimePrice.dat'
-        callback = lambda dt: shfe.fetchData(dt, suffix = suffix)
-        shfe.traverseDate(\
-                dsrc = dsrc,
-                ddst = ddst,
-                callback = callback,
-            )
+        paramsFetchData = {
+            'session': session,
+        }
+        paramsFetchData = { k: v for k, v in paramsFetchData.items() if v is not None }
+        callback = lambda dt: shfe.fetchData(reportDate = dt, suffix = suffix, **paramsFetchData)
+        paramsTraverseDate = {
+            'executor': executor,
+            'callback': callback,
+        }
+        paramsTraverseDate = { k: v for k, v in paramsTraverseDate.items() if v is not None }
+        futures = shfe.traverseDate(dsrc = dsrc, ddst = ddst, **paramsTraverseDate)
 
-        print(shfe.table)
+        concurrent.futures.wait(futures, timeout = None, return_when = concurrent.futures.ALL_COMPLETED)
 
-        self.assertTrue(shfe.table.size > 0, 'DataFrame `shfe.table` should NOT be EMPTY!')
+        try:
+            if session:
+                session.close()
+        except:
+            pass
 
-    def not_test_stock(self):
+        print(f'shfe.table={shfe.table}')
+        self.assertTrue(isinstance(shfe.table, pd.DataFrame),)
+        self.assertTrue(shfe.table.size > 0, 'Output DataFrame `shfe.table` should NOT be EMPTY!')
+        date_index = shfe.table.index[0]
+        iyear = date_index.year
+        imonth = date_index.month
+        iday = date_index.day
+        self.assertTrue(iyear == 2018 and imonth == 1 and (iday == 1 or iday == 2), 'Date output conflicts with input!')
+
+    def test_stock(self):
         path = '20181009dailystock.dat.txt'
         with open(path, mode = 'r', encoding = 'utf-8') as file:
             text = file.read()
