@@ -45,9 +45,12 @@ setup(
         'numpy',
         'matplotlib',
         'flask',
+        'beautifulsoup4',
+        'lxml',
     ],
     project_urls={
         'Bug Reports': 'https://github.com/donizyo/shfe/issues',
         'Source': 'https://github.com/donizyo/shfe/',
     },
 )
+
