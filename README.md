@@ -1,3 +1,5 @@
+[![Travis-Build-Status](https://travis-ci.org/donizyo/dementor.svg?branch=dev)](https://travis-ci.org/donizyo/dementor)
+
 # 摄魂怪 (Dementor) 项目
 
 本项目是使用 Python 语言编写的网络爬虫，专注于抓取金融数据。
