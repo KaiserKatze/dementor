@@ -3,8 +3,4 @@
 # Dependencies for shfe
 #
 
-requests
-pandas
-numpy
-matplotlib
-flask
+setuptools
