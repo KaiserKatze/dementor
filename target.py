@@ -209,7 +209,7 @@ class BaseParser:
     def parseData(self, reportDate, response):
         try:
             text = response.text
-            self.parseText(reportDate, text)
+            self.parseText(reportDate, text, response=response)
 
         except SpiderException as e:
             sReportDate = reportDate.strftime('%Y-%m-%d')
@@ -223,18 +223,24 @@ class BaseParser:
     def parseText(self,
                 reportDate: datetime.date,
                 text: str,
+                **kwargs,
             ):
         if not text:
             raise SpiderException(TypeError('Argument `text` is not specified!'))
 
         try:
             data = json.loads(text)
+            self.parseJson(reportDate, data)
         except:
-            raise SpiderException('Invalid data structure: fail to parse response as json!')
+            logger.info('Invalid data structure: fail to parse response as json!')
 
-        self.parseJson(reportDate, data)
+            soup = BeautifulSoup(response, 'lxml')
+            self.parseHtml(reportDate, soup)
 
     def parseJson(self, reportDate: datetime.date, data: dict):
+        pass
+
+    def parseHtml(self, reportDate: datetime.date, soup):
         pass
 
 class BaseSpider:
@@ -286,7 +292,7 @@ class BaseSpider:
         logger.info(f'Fetching data for `url={url}` ...')
 
         status_code = response.status_code
-        if status_code == 200:
+        if response.ok:
             self.parseData(reportDate, response)
         else:
             logger.error(f'Fail to retrieve request(url={url})!')

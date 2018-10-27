@@ -72,25 +72,3 @@ class CurrencyParser(BaseParser):
                 name=pd.to_datetime(reportDate),)
 
         return row
-
-    def parseJson(self, reportDate, data):
-        # 交易日期
-        o_tradingday = data['o_tradingday']
-        o_tradingday = datetime.datetime.strptime(o_tradingday, '%Y%m%d')
-        # 年度期数
-        o_issueno = data['o_issueno']
-        o_issueno = int(o_issueno)
-        # 总期数
-        o_totalissueno = data['o_totalissueno']
-        o_totalissueno = int(o_totalissueno)
-        # 数据
-        o_cursor = data['o_cursor']
-        if not isinstance(o_cursor, list):
-            raise SpiderException('Invalid data structure: invalid chunks found!')
-
-        for chunk in o_cursor:
-            if not isinstance(chunk, dict):
-                raise SpiderException('Invalid data structure: invalid chunk found!')
-
-            row = self.parseChunk(reportDate, chunk)
-            self.table = self.table.append(row, ignore_index=True)
