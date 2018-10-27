@@ -1,21 +1,21 @@
 language: python
 python:
   - "3.6"
-  - "3.7"
+  - "3.7-dev"
 
 sudo: false
 
-branches:
-  only:
-    - master
-    - dev
+#branches:
+#  only:
+#    - master
+#    - dev
 
 git:
   depth: 3
 # command to install dependencies
 install:
-  - python -m pip install --user -r requirements.txt
-  - python setup.py --user install
+  - python -m pip install -r requirements.txt
+  - python setup.py install
 # command to run tests
 script:
   - pytest
