@@ -17,9 +17,8 @@ logger = logging.getLogger(__name__)
 
 class CurrencyParser(BaseParser):
 
-    def parseHtml(self, response):
-        soup = BeautifulSoup(response, 'lxml')
-        return soup
+    def parseHtml(self, reportDate: datetime.date, soup):
+        pass
 
     def parseChunk(self, reportDate: datetime.date, chunk):
         # 品种
