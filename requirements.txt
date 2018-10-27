@@ -1,6 +1,7 @@
 #
 # PIP Requirements
-# Dependencies for shfe
+# Dependencies for building, configuring and testing
 #
 
 setuptools
+pytest
