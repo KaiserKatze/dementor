@@ -133,9 +133,9 @@ class TestSHFE(unittest.TestCase):
 
     def test_stock(self):
         path = '20181009dailystock.dat.txt'
+        with open(path, mode='r', encoding='utf-8') as file:
             text = file.read()
             data = json.loads(text)
-        with open(path, mode='r', encoding='utf-8') as file:
 
             # 交易日期
             o_tradingday = data['o_tradingday']
