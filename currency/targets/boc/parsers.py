@@ -18,7 +18,8 @@ logger = logging.getLogger(__name__)
 class CurrencyParser(BaseParser):
 
     def parseHtml(self, reportDate: datetime.date, soup):
-        pass
+        # div.BOC_main.publish table
+        soup.select_one('form#historysearchform')
 
     def parseChunk(self, reportDate: datetime.date, chunk):
         # 品种
