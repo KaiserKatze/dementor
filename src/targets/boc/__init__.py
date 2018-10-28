@@ -2,6 +2,15 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+import logging
+
+from target import Target, Session
+from .parsers import CurrencyParser
+from .spiders import CurrencySpider
+
+############################################################################
+logger = logging.getLogger(__name__)
+############################################################################
 
 class TargetExt(Target):
 
