@@ -27,6 +27,21 @@ class TestBOC(unittest.TestCase):
         path = os.path.join(here, path)
         with open(path, mode='r', encoding='utf-8') as file:
             text = file.read()
+            soup = BeautifulSoup(text, 'html.parser')
+
+            # get page number
+            node = soup.select('#list_navigator li:nth-of-type(1)')[0]
+            pages = node.string
+            pages = pages[1:-1]
+            pages = int(pages)
+            print('Pages:', pages)
+
+            # scan table
+            rows = soup.select('div.BOC_main.publish table tr')
+            for rowId in range(1, len(rows)):
+                row = rows[rowId]
+                cells = row.select('td')
+                print(*[cell.string for cell in cells])
 
 if __name__ == '__main__':
     unittest.main()
