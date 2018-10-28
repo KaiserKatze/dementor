@@ -17,6 +17,8 @@ install:
   - python -m pip install -r requirements.txt
   - python setup.py install
 # command to run tests
+before_script:
+  - python -m pytest --version
 script:
   - python -m pytest
 
