@@ -1,4 +1,3 @@
-import sys
 import logging
 import os.path
 import unittest
@@ -8,7 +7,6 @@ import numpy as np
 from bs4 import BeautifulSoup
 
 here = os.path.abspath(os.path.dirname(__file__))
-sys.path.append(os.path.dirname(here))
 
 from targets.boc import BankOfChina
 from target import Session
@@ -29,7 +27,6 @@ class TestBOC(unittest.TestCase):
         path = os.path.join(here, path)
         with open(path, mode='r', encoding='utf-8') as file:
             text = file.read()
-            data = json.loads(text)
 
 if __name__ == '__main__':
     unittest.main()

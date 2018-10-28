@@ -1,4 +1,3 @@
-import sys
 import sqlite3
 import unittest
 import datetime
@@ -6,14 +5,15 @@ import logging
 import json
 import re
 import concurrent.futures
+import os.path
 
 import pandas as pd
 import numpy as np
 
-sys.path.append('..')
+here = os.path.abspath(os.path.dirname(__file__))
 
 try:
-    from targets.shfe.futures import SHFE
+    from targets.shfe import SHFE
     from target import Session
 except ImportError as e1:
     from futures import SHFE, Session, ThreadPoolExecutor
@@ -31,8 +31,9 @@ logger = logging.getLogger(__name__)
 class TestSHFE(unittest.TestCase):
 
     def test_timeprice(self):
-        uri = './20180920dailyTimePrice.dat'
+        uri = '20180920dailyTimePrice.dat'
         #uri = './20180920defaultTimePrice.dat'
+        uri = os.path.join(here, uri)
 
         shfe = SHFE()
         shfe.loadTable(force_new=True)
@@ -48,91 +49,92 @@ class TestSHFE(unittest.TestCase):
             text = file.read()
             shfe.parseText(datetime.date(2018, 9, 20), text)
 
-        #############################################
-        # Check Data Interpretation
-        #############################################
+            #############################################
+            # Check Data Interpretation
+            #############################################
 
-        self.assertTrue(shfe.table.size > 0, 'DataFrame `shfe.table` should NOT be EMPTY!')
+            self.assertTrue(shfe.table.size > 0, 'DataFrame `shfe.table` should NOT be EMPTY!')
 
-        logger.info(f'Complete parsing!\nTable:\n{shfe.table}')
+            logger.info(f'Complete parsing!\nTable:\n{shfe.table}')
 
-        table = shfe.table.copy(deep=True)
-        shfe.saveTable()
+            table = shfe.table.copy(deep=True)
+            shfe.saveTable()
 
-        #############################################
-        # Check Load/Save Consistency
-        #############################################
+            #############################################
+            # Check Load/Save Consistency
+            #############################################
 
-        logger.info('Double-checking!')
+            logger.info('Double-checking!')
 
-        shfe.loadTable()
+            shfe.loadTable()
 
-        self.assertTrue(shfe.table is not None, 'Fail to reload dataFrame `shfe.table`!')
-        pd.testing.assert_frame_equal(table,
-                shfe.table,
-                check_dtype=False,
-            ) # 'Fail to keep load/save consistency!'
+            self.assertTrue(shfe.table is not None, 'Fail to reload dataFrame `shfe.table`!')
+            pd.testing.assert_frame_equal(table,
+                    shfe.table,
+                    check_dtype=False,
+                ) # 'Fail to keep load/save consistency!'
 
-        #############################################
-        # Check Spider
-        #############################################
+            #############################################
+            # Check Spider
+            #############################################
 
-        shfe.loadTable(force_new=True)
+            shfe.loadTable(force_new=True)
 
-        print(f'shfe.table={shfe.table}')
-        self.assertTrue(isinstance(shfe.table, pd.DataFrame),)
-        self.assertTrue(shfe.table.size == 0, 'New DataFrame `shfe.table` should be EMPTY!')
+            print(f'shfe.table={shfe.table}')
+            self.assertTrue(isinstance(shfe.table, pd.DataFrame),)
+            self.assertTrue(shfe.table.size == 0, 'New DataFrame `shfe.table` should be EMPTY!')
 
-        dsrc = datetime.date(2018, 1, 1)
-        ddst = datetime.date(2018, 1, 2)
+            dsrc = datetime.date(2018, 1, 1)
+            ddst = datetime.date(2018, 1, 2)
 
-        session = None
-        executor = None
+            session = None
+            executor = None
 
-        try:
-            HOSTNAME = 'www.shfe.com.cn'
-            URL_REFERER = 'http://www.shfe.com.cn/statements/dataview.html?paramid=delaymarket_cu'
-            session = Session(HOSTNAME, URL_REFERER)
-        except:
-            pass
+            try:
+                HOSTNAME = 'www.shfe.com.cn'
+                URL_REFERER = 'http://www.shfe.com.cn/statements/dataview.html?paramid=delaymarket_cu'
+                session = Session(HOSTNAME, URL_REFERER)
+            except:
+                pass
 
-        try:
-            executor = ThreadPoolExecutor()
-        except:
-            pass
+            try:
+                executor = ThreadPoolExecutor()
+            except:
+                pass
 
-        suffix = 'dailyTimePrice.dat'
-        paramsFetchData = {
-            'session': session,
-        }
-        paramsFetchData = { k: v for k, v in paramsFetchData.items() if v is not None }
-        paramsTraverseDate = {
-        callback = lambda dt: shfe.fetchData(reportDate=dt, suffix=suffix, **paramsFetchData)
-            'executor': executor,
-            'callback': callback,
-        }
-        paramsTraverseDate = { k: v for k, v in paramsTraverseDate.items() if v is not None }
-        futures = shfe.traverseDate(dsrc=dsrc, ddst=ddst, **paramsTraverseDate)
+            suffix = 'dailyTimePrice.dat'
+            paramsFetchData = {
+                'session': session,
+            }
+            paramsFetchData = { k: v for k, v in paramsFetchData.items() if v is not None }
+            callback = lambda dt: shfe.fetchData(reportDate=dt, suffix=suffix, **paramsFetchData)
+            paramsTraverseDate = {
+                'executor': executor,
+                'callback': callback,
+            }
+            paramsTraverseDate = { k: v for k, v in paramsTraverseDate.items() if v is not None }
+            futures = shfe.traverseDate(dsrc=dsrc, ddst=ddst, **paramsTraverseDate)
 
-        concurrent.futures.wait(futures, timeout=None, return_when=concurrent.futures.ALL_COMPLETED)
+            concurrent.futures.wait(futures, timeout=None, return_when=concurrent.futures.ALL_COMPLETED)
 
-        try:
-            if session:
-                session.close()
-        except:
-            pass
+            try:
+                if session:
+                    session.close()
+            except:
+                pass
 
-        print(f'shfe.table={shfe.table}')
-        self.assertTrue(isinstance(shfe.table, pd.DataFrame),)
-        self.assertTrue(shfe.table.size > 0, 'Output DataFrame `shfe.table` should NOT be EMPTY!')
-        date_index = shfe.table.index[0]
-        iyear = date_index.year
-        imonth = date_index.month
-        iday = date_index.day
-        self.assertTrue(iyear == 2018 and imonth == 1 and (iday == 1 or iday == 2), 'Date output conflicts with input!')
+            print(f'shfe.table={shfe.table}')
+            self.assertTrue(isinstance(shfe.table, pd.DataFrame),)
+            self.assertTrue(shfe.table.size > 0, 'Output DataFrame `shfe.table` should NOT be EMPTY!')
+            date_index = shfe.table.index[0]
+            iyear = date_index.year
+            imonth = date_index.month
+            iday = date_index.day
+            self.assertTrue(iyear == 2018 and imonth == 1 and (iday == 1 or iday == 2), 'Date output conflicts with input!')
 
     def test_stock(self):
-        path = '20181009dailystock.dat.txt'
+        path = '20181009dailystock.dat'
+        path = os.path.join(here, path)
         with open(path, mode='r', encoding='utf-8') as file:
             text = file.read()
             data = json.loads(text)
