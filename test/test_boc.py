@@ -1,6 +1,7 @@
 import sys
 import logging
 import os.path
+import unittest
 
 import pandas as pd
 import numpy as np
@@ -9,7 +10,7 @@ from bs4 import BeautifulSoup
 here = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(os.path.dirname(here))
 
-from targets.boc.core import BankOfChina
+from targets.boc import BankOfChina
 from target import Session
 
 LOGGING_FILE = 'test.log'
