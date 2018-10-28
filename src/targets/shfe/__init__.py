@@ -17,14 +17,6 @@ class TargetExt(Target):
     HOSTNAME = 'www.shfe.com.cn'
     URL_REFERER = 'http://www.shfe.com.cn/statements/dataview.html?paramid=kx'
 
-    def __init__(self):
-        super().__init__(\
-                session=Session(\
-                        host=self.HOSTNAME,
-                        referer=self.URL_REFERER,
-                    ),
-            )
-
     def loadTable(self, force_new=False):
         super().loadTable(self.DEFAULT_COLUMNS, force_new,)
 

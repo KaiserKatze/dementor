@@ -126,7 +126,10 @@ class Target:
                 session=Session(),
                 tableName=None,
             ):
-        self._session = session
+        self._session = Session(\
+            host=self.HOSTNAME,
+            referer=self.URL_REFERER,
+        )
         self._executor = ThreadPoolExecutor()
         self._tableName = tableName or self.GetDefaultTableName()
         self._table = None
