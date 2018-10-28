@@ -4,8 +4,6 @@
 import datetime
 import logging
 
-import matplotlib.pyplot as plt
-
 from target import Target, Session
 from .parsers import TimePriceParser, StockParser
 from .spiders import TimePriceSpider, StockSpider
@@ -13,15 +11,6 @@ from .spiders import TimePriceSpider, StockSpider
 ############################################################################
 logger = logging.getLogger(__name__)
 ############################################################################
-
-def plot(dataframe, instrumentId):
-    df[df['instrumentId'] == instrumentId].plot(\
-            x='reportDate',
-            y='refSettlementPrice',
-            kind='line',
-            title=instrumentId,
-        )
-    plt.show()
 
 class TargetExt(Target):
 
