@@ -18,55 +18,50 @@ logger = logging.getLogger(__name__)
 class CurrencyParser(BaseParser):
 
     def parseHtml(self, reportDate: datetime.date, soup):
-        # div.BOC_main.publish table
-        soup.select_one('form#historysearchform')
+        if getattr(self, 'pages', None) is None:
+            # 总页数
+            node = soup.select_one('#list_navigator li:nth-of-type(1)')
+            # `tPages` 取值形如 '共5页'
+            tPages = node.string
+            # 提取 '共' 与 '页' 之间的数字
+            sPages = tPages[1:-1]
+            assert(len(sPages) > 0,
+                f'Unexpected HTML structure: {tPages!r}!')
+            # 强制转换类型为数字
+            pages = int(sPages)
+            self.pages = pages
+
+        rows = soup.select('div.BOC_main.publish table tr')
+        for rowId in range(1, len(rows)):
+            row = rows[rowId]
+            self.parseChunk(reportDate, row)
 
     def parseChunk(self, reportDate: datetime.date, chunk):
-        # 品种
-        # 形如('铜$$COPPER')
-        e_varname = chunk['VARNAME']
-        e_varname = e_varname[:e_varname.index('$$')]
+        cells = chunk.select('td')
 
-        # 地区
-        # 形如('上海$$Shanghai')
-        e_regname = chunk['REGNAME']
-        try:
-            index = e_regname.index('$$')
-        except ValueError:
-            pass
-        else:
-            e_regname = e_regname[:index]
+        # 每行有 7 列：
+        #   货币名称
+        #   现汇买入价
+        #   现钞买入价
+        #   现汇卖出价
+        #   现钞卖出价
+        #   中行折算价
+        #   发布时间
 
-        # 仓库
-        # 形如('期晟公司$$Qisheng')
-        e_whabbrname = chunk['WHABBRNAME']
-        if 'Total' in e_whabbrname or 'Subtotal' in e_whabbrname:
-            #logger.info(f'Skip ({e_whabbrname!r}) ...')
-            pass
-        try:
-            index = e_whabbrname.index('$$')
-        except ValueError:
-            pass
-        else:
-            e_whabbrname = e_whabbrname[:index]
+        assert(len(cells) == 7,
+            f'Unexpected HTML structure: {len(cells)} cells in row!')
 
-        # 期货
-        # 形如(326)
-        e_wrtwghts = chunk['WRTWGHTS']
-        #print(f'e_wrtwghts = {e_wrtwghts!r}')
+        # 货币名称
+        cell0 = cells[0]
+        sCurrencyName = cell0.string.strip()
+        # 汇率
+        rates = map(lambda cell: float(cell.string), cells[1:-1])
+        # 发布时间
+        cell6 = cells[6]
+        sPublishTime = cell6.string.strip()
+        publishTime = datetime.datetime.strptime(sPublishTime, '%Y.%m.%d %H:%M:%S')
 
-        # 增减
-        # 形如(0)
-        e_wrtchange = chunk['WRTCHANGE']
-        #print(f'e_wrtchange = {e_wrtchange!r}')
-
-        row = [
-            e_varname,
-            e_regname,
-            e_whabbrname,
-            e_wrtwghts,
-            e_wrtchange,
-        ]
+        row = [sCurrencyName, *rates, publishTime]
         row = pd.Series(row,
                 index=self.DEFAULT_COLUMNS,
                 name=pd.to_datetime(reportDate),)
