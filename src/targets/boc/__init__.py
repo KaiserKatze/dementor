@@ -22,5 +22,12 @@ class TargetExt(Target):
 
 class BankOfChina(TargetExt):
 
+    # ppr: price of purchasing remit    现汇买入价
+    # ppc: price of purchasing cash     现钞买入价
+    # psr: price of selling remit       现汇卖出价
+    # psc: price of selling cash        现钞卖出价
+    # pag: price of average             中间价
+    DEFAULT_COLUMNS = ( 'currency', 'ppr', 'ppc', 'psr', 'psc', 'pag', 'time', )
+
     def __init__(self):
         pass
