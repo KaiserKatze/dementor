@@ -123,10 +123,10 @@ class Target:
             return None
 
     def __init__(self,
-                session=Session(),
+                session=None,
                 tableName=None,
             ):
-        self._session = Session(\
+        self._session = session or Session(\
             host=self.HOSTNAME,
             referer=self.URL_REFERER,
         )
