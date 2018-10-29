@@ -23,25 +23,22 @@ logger = logging.getLogger(__name__)
 
 class TestBOC(unittest.TestCase):
     def test_io(self):
-        path = 'boc-20181024.html'
-        path = os.path.join(here, path)
-        with open(path, mode='r', encoding='utf-8') as file:
-            text = file.read()
-            soup = BeautifulSoup(text, 'html.parser')
+        paths = ['boc-20181024.html', 'boc-20080101.html']
 
-            # get page number
-            node = soup.select('#list_navigator li:nth-of-type(1)')[0]
-            pages = node.string
-            pages = pages[1:-1]
-            pages = int(pages)
-            print('Pages:', pages)
+        def test(path):
+            print(f'Testing sample file {path!r} ...')
 
-            # scan table
-            rows = soup.select('div.BOC_main.publish table tr')
-            for rowId in range(1, len(rows)):
-                row = rows[rowId]
-                cells = row.select('td')
-                print(*[cell.string for cell in cells])
+            reportDate = datetime.datetime.strptime(path[4:-5], '%Y%m%d')
+            path = os.path.join(here, path)
+
+            boc = BankOfChina()
+            boc.loadTable(force_new=True)
+
+            with open(path, mode='r', encoding='utf-8') as file:
+                text = file.read()
+                boc.parseText(reportDate, text)
+                self.assertTrue(isinstance(shfe.table, pd.DataFrame),)
+                self.assertTrue(shfe.table.size > 0, 'Output DataFrame `shfe.table` should NOT be EMPTY!')
 
 if __name__ == '__main__':
     unittest.main()
