@@ -34,7 +34,8 @@ class CurrencyParser(BaseParser):
         rows = soup.select('div.BOC_main.publish table tr')
         for rowId in range(1, len(rows)):
             row = rows[rowId]
-            self.parseChunk(reportDate, row)
+            row = self.parseChunk(reportDate, row)
+            self.table = self.table.append(row, ignore_index=True)
 
     def parseChunk(self, reportDate: datetime.date, chunk):
         cells = chunk.select('td')
