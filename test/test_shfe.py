@@ -11,11 +11,8 @@ import numpy as np
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-try:
-    from targets.shfe import SHFE
-    from target import Session
-except ImportError as e1:
-    from futures import SHFE, Session, ThreadPoolExecutor
+from targets.shfe import TimePrice as SHFE
+from target import Session
 
 LOGGING_FILE = 'futures.log'
 logging.basicConfig(\
