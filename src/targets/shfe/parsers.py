@@ -64,9 +64,7 @@ class TimePriceParser(BaseParser):
 
             if '9:00-15:00' in chunkTime:
                 row = self.parseChunk(reportDate, chunk)
-                table = self.table
-                table = table.append(row)
-                self.table = table
+                self.append_row(row)
 
             elif '9:00-10:15' in chunkTime:
                 continue
@@ -148,4 +146,4 @@ class StockParser(BaseParser):
                 raise SpiderException('Invalid data structure: invalid chunk found!')
 
             row = self.parseChunk(reportDate, chunk)
-            self.table = self.table.append(row, ignore_index=True)
+            self.append_row(row)

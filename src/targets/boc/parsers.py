@@ -26,8 +26,7 @@ class CurrencyParser(BaseParser):
                 tPages = node.string
                 # 提取 '共' 与 '页' 之间的数字
                 sPages = tPages[1:-1]
-                assert(len(sPages) > 0,
-                    f'Unexpected HTML structure: {tPages!r}!')
+                assert len(sPages) > 0, f'Unexpected HTML structure: {tPages!r}!'
                 # 强制转换类型为数字
                 pages = int(sPages)
                 self.pages = pages
@@ -38,7 +37,7 @@ class CurrencyParser(BaseParser):
         for rowId in range(1, len(rows)):
             row = rows[rowId]
             row = self.parseChunk(reportDate, row)
-            self.table = self.table.append(row, ignore_index=True)
+            self.append_row(row)
 
     def parseChunk(self, reportDate: datetime.date, chunk):
         cells = chunk.select('td')
@@ -52,8 +51,7 @@ class CurrencyParser(BaseParser):
         #   中行折算价
         #   发布时间
 
-        assert(len(cells) == 7,
-            f'Unexpected HTML structure: {len(cells)} cells in row!')
+        assert len(cells) == 7, f'Unexpected HTML structure: {len(cells)} cells in row!'
 
         # 货币名称
         cell0 = cells[0]
