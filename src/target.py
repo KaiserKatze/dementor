@@ -157,6 +157,15 @@ class Target:
     def table(self, value: pd.DataFrame):
         self._table = value
 
+    def append_row(self, row: pd.Series):
+        if self.table is None:
+            raise AttributeError('Field `table` has not been initialized yet!')
+        if not isinstance(row, pd.Series):
+            raise TypeError(f'Argument `row` has invalid type: `{type(row)}`!')
+
+        rowId = row.name or len(self.table) # assert no error here
+        self.table.loc[rowId] = row
+
     def loadTable(self,
                 columns: list,
                 force_new: bool=False,
