@@ -6,8 +6,6 @@ import signal
 
 from flask import Flask, render_template, url_for
 
-from futures import SHFE
-
 app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
@@ -17,13 +15,3 @@ def index():
             pathAppCss=url_for('static', filename='app.css'),
         )
 
-@app.route('/ajax/spider/start/', methods=['POST'])
-def ajax():
-    shfe = SHFE()
-
-    try:
-        shfe.startSpider()
-    finally:
-        shfe.saveTable()
-
-    return 'hello'

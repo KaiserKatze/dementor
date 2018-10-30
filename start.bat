@@ -1,2 +1,2 @@
-@set FLASK_APP=app.py
+@set FLASK_APP=src/app.py
 @python -m flask run
