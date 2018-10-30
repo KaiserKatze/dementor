@@ -20,7 +20,7 @@ class TargetExt(Target):
     def loadTable(self, force_new=False):
         super().loadTable(self.DEFAULT_COLUMNS, force_new,)
 
-class SHFE(TargetExt, TimePriceParser, TimePriceSpider):
+class TimePrice(TargetExt, TimePriceParser, TimePriceSpider):
 
     DEFAULT_COLUMNS = ( 'instrumentId', 'refSettlementPrice', 'updown', )
 
@@ -30,7 +30,7 @@ class SHFE(TargetExt, TimePriceParser, TimePriceSpider):
             ):
         sdsrc = dsrc.strftime('%Y-%m-%d')
         sddst = ddst.strftime('%Y-%m-%d')
-        print(f'SHFE spider starts from `{sdsrc}` to `{sddst}` ...')
+        print(f'SHFE TimePrice spider starts from `{sdsrc}` to `{sddst}` ...')
 
         try:
             self.loadTable()
@@ -83,7 +83,7 @@ class Stock(TargetExt, StockParser, StockSpider):
             self.saveTable()
 
 if __name__ == '__main__':
-    shfe = SHFE()
+    shfe = TimePrice()
 
     import sys
     import signal
