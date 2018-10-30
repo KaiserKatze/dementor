@@ -1,6 +1,5 @@
 import logging
 import os.path
-import unittest
 
 import pandas as pd
 import numpy as np
@@ -21,24 +20,20 @@ logging.basicConfig(\
 )
 logger = logging.getLogger(__name__)
 
-class TestBOC(unittest.TestCase):
-    def test_io(self):
-        paths = ['boc-20181024.html', 'boc-20080101.html']
+def test_io():
+    paths = ['boc-20181024.html', 'boc-20080101.html']
 
-        def test(path):
-            print(f'Testing sample file {path!r} ...')
+    def test(path):
+        print(f'Testing sample file {path!r} ...')
 
-            reportDate = datetime.datetime.strptime(path[4:-5], '%Y%m%d')
-            path = os.path.join(here, path)
+        reportDate = datetime.datetime.strptime(path[4:-5], '%Y%m%d')
+        path = os.path.join(here, path)
 
-            boc = BankOfChina()
-            boc.loadTable(force_new=True)
+        boc = BankOfChina()
+        boc.loadTable(force_new=True)
 
-            with open(path, mode='r', encoding='utf-8') as file:
-                text = file.read()
-                boc.parseText(reportDate, text)
-                self.assertTrue(isinstance(shfe.table, pd.DataFrame),)
-                self.assertTrue(shfe.table.size > 0, 'Output DataFrame `shfe.table` should NOT be EMPTY!')
-
-if __name__ == '__main__':
-    unittest.main()
+        with open(path, mode='r', encoding='utf-8') as file:
+            text = file.read()
+            boc.parseText(reportDate, text)
+            assert isinstance(boc.table, pd.DataFrame), f'Output DataFrame `boc.table` has invalid type {type(boc.table)}!'
+            assert boc.table.size > 0, 'Output DataFrame `boc.table` should NOT be EMPTY!'
