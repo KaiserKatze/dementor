@@ -21,15 +21,18 @@ class CurrencyParser(BaseParser):
         if getattr(self, 'pages', None) is None:
             # 总页数
             node = soup.select_one('#list_navigator li:nth-of-type(1)')
-            # `tPages` 取值形如 '共5页'
-            tPages = node.string
-            # 提取 '共' 与 '页' 之间的数字
-            sPages = tPages[1:-1]
-            assert(len(sPages) > 0,
-                f'Unexpected HTML structure: {tPages!r}!')
-            # 强制转换类型为数字
-            pages = int(sPages)
-            self.pages = pages
+            if node is not None:
+                # `tPages` 取值形如 '共5页'
+                tPages = node.string
+                # 提取 '共' 与 '页' 之间的数字
+                sPages = tPages[1:-1]
+                assert(len(sPages) > 0,
+                    f'Unexpected HTML structure: {tPages!r}!')
+                # 强制转换类型为数字
+                pages = int(sPages)
+                self.pages = pages
+            else:
+                self.pages = 1
 
         rows = soup.select('div.BOC_main.publish table tr')
         for rowId in range(1, len(rows)):
